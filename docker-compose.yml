@@ -1,0 +1,39 @@
+services:
+  backend:
+    build: ./backend
+    container_name: financecontrol_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:////data/financecontrol.db
+      - SECRET_KEY=FC_SECRET_KEY_2025_TROQUE_EM_PRODUCAO
+      - TOKEN_EXPIRE_HOURS=24
+    volumes:
+      - db_data:/data
+    networks:
+      - fc_net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build: ./frontend
+    container_name: financecontrol_web
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - fc_net
+
+volumes:
+  db_data:
+
+networks:
+  fc_net:
+    driver: bridge
