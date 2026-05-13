@@ -102,7 +102,7 @@ function LoginPage({onLogin}) {
   return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
       background:C.bg,fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{...card({background:C.surface,boxShadow:"0 30px 70px rgba(0,0,0,.55)"}),width:400,padding:40}}>
+      <div style={{...card({background:C.surface,boxShadow:"0 30px 70px rgba(0,0,0,.55)"}),width:"100%",maxWidth:400,padding:"32px 24px",margin:"16px"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:54,height:54,
             borderRadius:14,background:C.accentSft,border:`1px solid ${C.accent}44`,marginBottom:14}}>
@@ -129,7 +129,7 @@ function LoginPage({onLogin}) {
           </div>
         )}
 
-        {[["E-mail","email",email,setEmail,"text"],["Senha","password",pass,setPass,"password"]].map(([l,id,v,s,t])=>(
+        {[["E-mail","email",email,setEmail,"email"],["Senha","password",pass,setPass,"password"]].map(([l,id,v,s,t])=>(
           <div key={id} style={{marginBottom:14}}>
             <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>{l}</label>
             <input type={t} value={v} onChange={e=>s(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()}
@@ -157,17 +157,44 @@ function LoginPage({onLogin}) {
 }
 
 /* ═══════════════════════════════════════════════
-   SIDEBAR
+   SIDEBAR (responsive — bottom nav on mobile)
 ═══════════════════════════════════════════════ */
 function Sidebar({active,set,user,onLogout}) {
   const nav=[
     {id:"dashboard",   icon:LayoutDashboard,label:"Dashboard"},
     {id:"transactions",icon:CreditCard,      label:"Lançamentos"},
-    {id:"import",      icon:Upload,          label:"Importar PDF"},
+    {id:"import",      icon:Upload,          label:"Importar"},
     {id:"cards",       icon:CreditCard,      label:"Cartões"},
     {id:"categories",  icon:Tag,             label:"Categorias"},
     {id:"reports",     icon:BarChart2,       label:"Relatórios"},
   ];
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(()=>{
+    const h=()=>setIsMobile(window.innerWidth<768);
+    window.addEventListener("resize",h); return ()=>window.removeEventListener("resize",h);
+  },[]);
+
+  if(isMobile) return (
+    <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.surface,borderTop:`1px solid ${C.border}`,
+      display:"flex",alignItems:"center",justifyContent:"space-around",padding:"6px 0 env(safe-area-inset-bottom, 6px)",zIndex:999,
+      fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
+      {nav.map(({id,icon:Icon,label})=>{
+        const on=active===id;
+        return (
+          <button key={id} onClick={()=>set(id)} style={{display:"flex",flexDirection:"column",alignItems:"center",
+            gap:2,padding:"4px 6px",border:"none",cursor:"pointer",background:"transparent",
+            color:on?C.accent:C.muted,fontSize:9,fontWeight:on?700:400}}>
+            <Icon size={18}/>{label}
+          </button>
+        );
+      })}
+      <button onClick={onLogout} style={{display:"flex",flexDirection:"column",alignItems:"center",
+        gap:2,padding:"4px 6px",border:"none",cursor:"pointer",background:"transparent",color:C.muted,fontSize:9}}>
+        <LogOut size={18}/>Sair
+      </button>
+    </div>
+  );
+
   return (
     <div style={{width:216,height:"100vh",background:C.surface,borderRight:`1px solid ${C.border}`,
       display:"flex",flexDirection:"column",flexShrink:0,fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
@@ -178,7 +205,7 @@ function Sidebar({active,set,user,onLogout}) {
           </div>
           <div>
             <div style={{fontSize:13,fontWeight:700,color:C.text}}>FinanceControl</div>
-            <div style={{fontSize:10,color:C.muted}}>v2.5 · IFRS</div>
+            <div style={{fontSize:10,color:C.muted}}>v2.6 · IFRS</div>
           </div>
         </div>
       </div>
@@ -1111,12 +1138,18 @@ export default function App() {
     else await register(name, email, password);
   };
 
+  const [isMobile, setIsMobile] = useState(()=>typeof window!=='undefined'&&window.innerWidth<768);
+  useEffect(()=>{
+    const h=()=>setIsMobile(window.innerWidth<768);
+    window.addEventListener("resize",h); return ()=>window.removeEventListener("resize",h);
+  },[]);
+
   if(!user) return <LoginPage onLogin={handleAuth}/>;
 
   return (
-    <div style={{display:"flex",height:"100vh",background:C.bg,color:C.text,overflow:"hidden",fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <Sidebar active={tab} set={setTab} user={user} onLogout={logout}/>
-      <main style={{flex:1,overflowY:"auto",padding:"24px 22px"}}>
+    <div style={{display:"flex",flexDirection:isMobile?"column":"row",height:"100vh",background:C.bg,color:C.text,overflow:"hidden",fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
+      {!isMobile && <Sidebar active={tab} set={setTab} user={user} onLogout={logout}/>}
+      <main style={{flex:1,overflowY:"auto",padding:isMobile?"16px 12px 80px":"24px 22px"}}>
         {tab==="dashboard"    && <DashboardTab    api={api}/>}
         {tab==="transactions" && <TransactionsTab api={api}/>}
         {tab==="import"       && <ImportTab       api={api}/>}
@@ -1124,6 +1157,7 @@ export default function App() {
         {tab==="categories"   && <CategoriesTab   api={api}/>}
         {tab==="reports"      && <ReportsTab      api={api}/>}
       </main>
+      {isMobile && <Sidebar active={tab} set={setTab} user={user} onLogout={logout}/>}
       <style>{`*{box-sizing:border-box}::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:${C.surface}}::-webkit-scrollbar-thumb{background:${C.border};border-radius:3px}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
