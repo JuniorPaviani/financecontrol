@@ -15,8 +15,9 @@ echo "[2/4] Installing frontend dependencies..."
 cd frontend
 npm install
 
-# 3. Build frontend
+# 3. Build frontend (set API URL for production)
 echo "[3/4] Building frontend..."
+export VITE_API_URL=/api
 npm run build
 cd ..
 
