@@ -36,20 +36,27 @@ const selSt = {background:C.card,border:`1px solid ${C.border}`,borderRadius:6,c
 ═══════════════════════════════════════════════ */
 async function apiFetch(path, options={}, token=null) {
   const headers = { "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) };
-  let res;
-  try {
-    res = await fetch(`${API}${path}`, {...options, headers: options.body instanceof FormData ? (token?{Authorization:`Bearer ${token}`}:{}) : headers });
-  } catch(e) {
-    throw new Error("Sem conexão com o servidor. Verifique sua internet e tente novamente.");
+  const reqHeaders = options.body instanceof FormData ? (token?{Authorization:`Bearer ${token}`}:{}) : headers;
+  const MAX_RETRIES = 3;
+  let lastError;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(`${API}${path}`, {...options, headers: reqHeaders});
+      if (!res.ok) {
+        const err = await res.json().catch(()=>({detail:res.statusText}));
+        const msg = err.detail || "Erro desconhecido";
+        if (res.status === 401) throw new Error("E-mail ou senha incorretos.");
+        if (res.status === 400) throw new Error(msg);
+        throw new Error(msg);
+      }
+      return res.json();
+    } catch(e) {
+      lastError = e;
+      if (e.message.includes("incorretos") || e.message.includes("cadastrado")) throw e;
+      if (attempt < MAX_RETRIES - 1) await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+    }
   }
-  if (!res.ok) {
-    const err = await res.json().catch(()=>({detail:res.statusText}));
-    const msg = err.detail || "Erro desconhecido";
-    if (res.status === 401) throw new Error("E-mail ou senha incorretos.");
-    if (res.status === 400) throw new Error(msg);
-    throw new Error(msg);
-  }
-  return res.json();
+  throw new Error(lastError?.message || "Servidor indisponível. Aguarde alguns segundos e tente novamente.");
 }
 
 /* ═══════════════════════════════════════════════
@@ -97,6 +104,20 @@ function LoginPage({onLogin}) {
   const [pass,  setPass]  = useState("");
   const [err,   setErr]   = useState("");
   const [loading,setLoading]=useState(false);
+  const [serverReady,setServerReady]=useState(false);
+
+  // Wake up server on page load (Render free tier sleeps after 15min)
+  useEffect(()=>{
+    let cancelled=false;
+    const wake=async()=>{
+      for(let i=0;i<5;i++){
+        try{ await fetch(`${API}/health`); if(!cancelled)setServerReady(true); return; }
+        catch(e){ await new Promise(r=>setTimeout(r,3000)); }
+      }
+    };
+    wake();
+    return ()=>{cancelled=true;};
+  },[]);
 
   const handle = async () => {
     setErr(""); setLoading(true);
@@ -118,6 +139,13 @@ function LoginPage({onLogin}) {
           </div>
           <h1 style={{fontSize:21,fontWeight:700,color:C.text,margin:0}}>FinanceControl</h1>
           <p style={{color:C.muted,fontSize:13,marginTop:4}}>Gestão Financeira · Classificação IFRS</p>
+          {!serverReady && (
+            <div style={{display:"flex",alignItems:"center",gap:6,justifyContent:"center",marginTop:10,
+              padding:"6px 12px",borderRadius:6,background:C.goldSft,border:`1px solid ${C.gold}33`}}>
+              <Loader2 size={12} color={C.gold} style={{animation:"spin .8s linear infinite"}}/>
+              <span style={{fontSize:11,color:C.gold}}>Conectando ao servidor...</span>
+            </div>
+          )}
         </div>
 
         <div style={{display:"flex",background:C.card,borderRadius:8,padding:3,marginBottom:22}}>
