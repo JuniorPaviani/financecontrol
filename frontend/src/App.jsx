@@ -36,10 +36,18 @@ const selSt = {background:C.card,border:`1px solid ${C.border}`,borderRadius:6,c
 ═══════════════════════════════════════════════ */
 async function apiFetch(path, options={}, token=null) {
   const headers = { "Content-Type":"application/json", ...(token?{Authorization:`Bearer ${token}`}:{}) };
-  const res = await fetch(`${API}${path}`, {...options, headers: options.body instanceof FormData ? (token?{Authorization:`Bearer ${token}`}:{}) : headers });
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, {...options, headers: options.body instanceof FormData ? (token?{Authorization:`Bearer ${token}`}:{}) : headers });
+  } catch(e) {
+    throw new Error("Sem conexão com o servidor. Verifique sua internet e tente novamente.");
+  }
   if (!res.ok) {
     const err = await res.json().catch(()=>({detail:res.statusText}));
-    throw new Error(err.detail || "Erro desconhecido");
+    const msg = err.detail || "Erro desconhecido";
+    if (res.status === 401) throw new Error("E-mail ou senha incorretos.");
+    if (res.status === 400) throw new Error(msg);
+    throw new Error(msg);
   }
   return res.json();
 }
