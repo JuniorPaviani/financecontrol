@@ -2,8 +2,17 @@ import { useState, useCallback } from "react";
 import { apiFetch } from "../api/client";
 
 export function useAuth() {
-  const [token, setToken] = useState(() => localStorage.getItem("fc_token"));
+  const [token, setToken] = useState(() => {
+    if (new URLSearchParams(window.location.search).has("logout")) {
+      localStorage.removeItem("fc_token");
+      localStorage.removeItem("fc_user");
+      window.history.replaceState({}, "", window.location.pathname);
+      return null;
+    }
+    return localStorage.getItem("fc_token");
+  });
   const [user,  setUser]  = useState(() => {
+    if (!localStorage.getItem("fc_token")) return null;
     try { return JSON.parse(localStorage.getItem("fc_user")); } catch { return null; }
   });
 
