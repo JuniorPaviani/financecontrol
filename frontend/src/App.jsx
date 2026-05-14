@@ -34,6 +34,89 @@ const selSt = {background:C.card,border:`1px solid ${C.border}`,borderRadius:6,c
 const btn = (bg, extra={}) => ({display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px 18px",borderRadius:8,border:"none",cursor:"pointer",background:bg,color:"#fff",fontSize:13,fontWeight:600,transition:"opacity 0.15s ease, transform 0.1s ease",...extra});
 
 /* ═══════════════════════════════════════════════
+   SVG: LOGO ROTAS CAFÉ (fiel ao @rotascafejb)
+═══════════════════════════════════════════════ */
+function RotasCafeLogo({ size = 48 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Logo Rotas Café">
+      <circle cx="50" cy="50" r="50" fill="#9B2335"/>
+      {/* vapor esquerdo */}
+      <path d="M36 33 C34 29 36 25 34 21" stroke="white" strokeWidth="3.2" fill="none" strokeLinecap="round"/>
+      {/* vapor direito */}
+      <path d="M50 31 C48 27 50 23 48 19" stroke="white" strokeWidth="3.2" fill="none" strokeLinecap="round"/>
+      {/* corpo da xícara */}
+      <path d="M26 42 L26 68 Q26 73 31 73 L63 73 Q68 73 68 68 L68 42 Z" fill="white"/>
+      {/* alça */}
+      <path d="M68 50 Q80 50 80 60 Q80 70 68 70" stroke="white" strokeWidth="4.5" fill="none" strokeLinecap="round"/>
+      {/* pires */}
+      <rect x="20" y="74" width="54" height="5" rx="2.5" fill="white" opacity="0.85"/>
+    </svg>
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   SVG: ESTRADA SERPENTEANTE (Serra do Rio do Rastro)
+═══════════════════════════════════════════════ */
+function WindingRoad({ width = 340, height = 480, color = "#C97B3C", opacity = 0.07 }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 340 480" fill="none"
+         xmlns="http://www.w3.org/2000/svg"
+         style={{position:"absolute",pointerEvents:"none",userSelect:"none"}}
+         aria-hidden="true">
+      {/* Estrada principal — curvas tipo serpentina de montanha */}
+      <path d="
+        M 170 480 L 170 430
+        C 170 410 220 400 260 400
+        L 300 400
+        C 320 400 330 385 330 368
+        L 330 348
+        C 330 330 310 318 280 318
+        L 80 318
+        C 50 318 30 306 30 288
+        L 30 268
+        C 30 250 50 238 80 238
+        L 270 238
+        C 300 238 320 226 320 208
+        L 320 188
+        C 320 170 300 158 270 158
+        L 80 158
+        C 50 158 30 146 30 128
+        L 30 108
+        C 30 90 50 78 80 78
+        L 240 78
+        C 270 78 290 66 290 48
+        L 290 0
+      " stroke={color} strokeWidth="22" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity={opacity}/>
+      {/* Faixa central tracejada */}
+      <path d="
+        M 170 480 L 170 430
+        C 170 410 220 400 260 400
+        L 300 400
+        C 320 400 330 385 330 368
+        L 330 348
+        C 330 330 310 318 280 318
+        L 80 318
+        C 50 318 30 306 30 288
+        L 30 268
+        C 30 250 50 238 80 238
+        L 270 238
+        C 300 238 320 226 320 208
+        L 320 188
+        C 320 170 300 158 270 158
+        L 80 158
+        C 50 158 30 146 30 128
+        L 30 108
+        C 30 90 50 78 80 78
+        L 240 78
+        C 270 78 290 66 290 48
+        L 290 0
+      " stroke={color} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round"
+        strokeDasharray="18 14" opacity={opacity * 2}/>
+    </svg>
+  );
+}
+
+/* ═══════════════════════════════════════════════
    API HELPER
 ═══════════════════════════════════════════════ */
 async function apiFetch(path, options={}, token=null) {
@@ -132,17 +215,21 @@ function LoginPage({onLogin}) {
   return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
       background:`radial-gradient(ellipse 90% 55% at 50% 0%, rgba(155,35,53,0.18) 0%, rgba(201,123,60,0.06) 40%, ${C.bg} 70%)`,
-      fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
+      fontFamily:"'Outfit','Segoe UI',sans-serif",position:"relative",overflow:"hidden"}}>
+      {/* Estrada serpenteante — decoração de fundo */}
+      <div style={{position:"absolute",bottom:-40,right:-60,opacity:1}}>
+        <WindingRoad width={300} height={440} color="#C97B3C" opacity={0.09}/>
+      </div>
+      <div style={{position:"absolute",top:-60,left:-40,opacity:1,transform:"scaleX(-1) rotate(10deg)"}}>
+        <WindingRoad width={220} height={340} color="#9B2335" opacity={0.06}/>
+      </div>
       <div style={{...card({background:C.surface,
         boxShadow:"0 0 0 1px rgba(155,35,53,0.12), 0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.4)"}),
         width:"100%",maxWidth:400,padding:"36px 28px",margin:"16px"}}>
 
         <div style={{textAlign:"center",marginBottom:30}}>
-          <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:56,height:56,
-            borderRadius:"50%",background:`linear-gradient(135deg, #9B2335, #6B1522)`,
-            border:`1px solid rgba(155,35,53,0.4)`,marginBottom:16,
-            boxShadow:`0 0 24px rgba(155,35,53,0.3), 0 4px 12px rgba(0,0,0,0.4)`}}>
-            <Wallet size={22} color="#F5E6D3"/>
+          <div style={{marginBottom:16,filter:`drop-shadow(0 0 16px rgba(155,35,53,0.5)) drop-shadow(0 4px 10px rgba(0,0,0,0.5))`}}>
+            <RotasCafeLogo size={64}/>
           </div>
           <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</h1>
           <p style={{color:C.muted,fontSize:12,marginTop:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>Gestão Financeira · IFRS</p>
@@ -246,15 +333,16 @@ function Sidebar({active,set,user,onLogout}) {
 
   return (
     <div style={{width:220,height:"100vh",background:C.surface,borderRight:`1px solid ${C.border}`,
-      display:"flex",flexDirection:"column",flexShrink:0,fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
+      display:"flex",flexDirection:"column",flexShrink:0,fontFamily:"'Outfit','Segoe UI',sans-serif",
+      position:"relative",overflow:"hidden"}}>
+      {/* estrada decorativa na sidebar */}
+      <div style={{position:"absolute",bottom:-20,right:-30,pointerEvents:"none"}}>
+        <WindingRoad width={180} height={280} color="#C97B3C" opacity={0.08}/>
+      </div>
       <div style={{padding:"22px 18px 14px",borderBottom:`1px solid ${C.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:34,height:34,borderRadius:"50%",
-            background:`linear-gradient(135deg, #9B2335, #6B1522)`,
-            border:`1px solid rgba(155,35,53,0.4)`,
-            display:"flex",alignItems:"center",justifyContent:"center",
-            boxShadow:`0 0 12px rgba(155,35,53,0.25), 0 2px 8px rgba(0,0,0,0.4)`}}>
-            <Wallet size={15} color="#F5E6D3"/>
+          <div style={{filter:`drop-shadow(0 0 6px rgba(155,35,53,0.4))`}}>
+            <RotasCafeLogo size={34}/>
           </div>
           <div>
             <div style={{fontSize:13,fontWeight:600,color:C.text,fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</div>
