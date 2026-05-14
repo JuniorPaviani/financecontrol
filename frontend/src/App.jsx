@@ -16,20 +16,22 @@ import {
 ═══════════════════════════════════════════════ */
 const API = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
+/* Paleta derivada da identidade visual do Rotas Café (@rotascafejb) */
 const C = {
-  bg:"#060A12",surface:"#0C1120",card:"#101728",cardB:"#141E30",
-  border:"#1C2A42",borderL:"#243550",accent:"#2563EB",accentSft:"rgba(37,99,235,0.14)",
-  gold:"#F59E0B",goldSft:"rgba(245,158,11,0.13)",green:"#10B981",greenSft:"rgba(16,185,129,0.11)",
-  red:"#EF4444",redSft:"rgba(239,68,68,0.11)",purple:"#8B5CF6",teal:"#06B6D4",
-  text:"#E8F0FE",muted:"#8895B0",faint:"#3D4F6E",
+  bg:"#0D0805",surface:"#140D07",card:"#1C110A",cardB:"#231509",
+  border:"#3D2415",borderL:"#5A3520",accent:"#9B2335",accentSft:"rgba(155,35,53,0.15)",
+  gold:"#C97B3C",goldSft:"rgba(201,123,60,0.14)",green:"#2A9D6E",greenSft:"rgba(42,157,110,0.12)",
+  red:"#DC3545",redSft:"rgba(220,53,69,0.12)",purple:"#8B6DB5",teal:"#C97B3C",
+  text:"#F5E6D3",muted:"#9E826A",faint:"#5A3D28",
 };
 
 const fmt = n => `R$ ${Number(n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 const fmtD = d => d ? new Date(d+"T12:00").toLocaleDateString("pt-BR") : "—";
 const card = (x={}) => ({background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 24px",...x});
 const pill = c => ({display:"inline-flex",alignItems:"center",gap:4,padding:"2px 10px",borderRadius:20,fontSize:11,fontWeight:600,background:c+"22",color:c,letterSpacing:"0.02em"});
-const inpSt = (err) => ({width:"100%",padding:"9px 12px",borderRadius:7,background:C.card,border:`1px solid ${err?C.red:C.border}`,color:C.text,fontSize:13,outline:"none",boxSizing:"border-box"});
+const inpSt = (err) => ({width:"100%",padding:"9px 12px",borderRadius:7,background:C.card,border:`1px solid ${err?C.red:C.border}`,color:C.text,fontSize:13,outline:"none",boxSizing:"border-box",transition:"border-color 0.15s ease"});
 const selSt = {background:C.card,border:`1px solid ${C.border}`,borderRadius:6,color:C.text,fontSize:12,padding:"6px 10px",cursor:"pointer",outline:"none"};
+const btn = (bg, extra={}) => ({display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px 18px",borderRadius:8,border:"none",cursor:"pointer",background:bg,color:"#fff",fontSize:13,fontWeight:600,transition:"opacity 0.15s ease, transform 0.1s ease",...extra});
 
 /* ═══════════════════════════════════════════════
    API HELPER
@@ -106,7 +108,6 @@ function LoginPage({onLogin}) {
   const [loading,setLoading]=useState(false);
   const [serverReady,setServerReady]=useState(false);
 
-  // Wake up server on page load (Render free tier sleeps after 15min)
   useEffect(()=>{
     let cancelled=false;
     const wake=async()=>{
@@ -130,70 +131,77 @@ function LoginPage({onLogin}) {
 
   return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
-      background:C.bg,fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{...card({background:C.surface,boxShadow:"0 30px 70px rgba(0,0,0,.55)"}),width:"100%",maxWidth:400,padding:"32px 24px",margin:"16px"}}>
-        <div style={{textAlign:"center",marginBottom:28}}>
-          <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:54,height:54,
-            borderRadius:14,background:C.accentSft,border:`1px solid ${C.accent}44`,marginBottom:14}}>
-            <Wallet size={24} color={C.accent}/>
+      background:`radial-gradient(ellipse 90% 55% at 50% 0%, rgba(155,35,53,0.18) 0%, rgba(201,123,60,0.06) 40%, ${C.bg} 70%)`,
+      fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
+      <div style={{...card({background:C.surface,
+        boxShadow:"0 0 0 1px rgba(155,35,53,0.12), 0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.4)"}),
+        width:"100%",maxWidth:400,padding:"36px 28px",margin:"16px"}}>
+
+        <div style={{textAlign:"center",marginBottom:30}}>
+          <div style={{display:"inline-flex",alignItems:"center",justifyContent:"center",width:56,height:56,
+            borderRadius:"50%",background:`linear-gradient(135deg, #9B2335, #6B1522)`,
+            border:`1px solid rgba(155,35,53,0.4)`,marginBottom:16,
+            boxShadow:`0 0 24px rgba(155,35,53,0.3), 0 4px 12px rgba(0,0,0,0.4)`}}>
+            <Wallet size={22} color="#F5E6D3"/>
           </div>
-          <h1 style={{fontSize:21,fontWeight:700,color:C.text,margin:0}}>FinanceControl</h1>
-          <p style={{color:C.muted,fontSize:13,marginTop:4}}>Gestão Financeira · Classificação IFRS</p>
+          <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</h1>
+          <p style={{color:C.muted,fontSize:12,marginTop:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>Gestão Financeira · IFRS</p>
           {!serverReady && (
-            <div style={{display:"flex",alignItems:"center",gap:6,justifyContent:"center",marginTop:10,
-              padding:"6px 12px",borderRadius:6,background:C.goldSft,border:`1px solid ${C.gold}33`}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,justifyContent:"center",marginTop:12,
+              padding:"7px 14px",borderRadius:8,background:C.goldSft,border:`1px solid ${C.gold}33`}}>
               <Loader2 size={12} color={C.gold} style={{animation:"spin .8s linear infinite"}}/>
-              <span style={{fontSize:11,color:C.gold}}>Conectando ao servidor...</span>
+              <span style={{fontSize:11,color:C.gold,fontWeight:500}}>Conectando ao servidor...</span>
             </div>
           )}
         </div>
 
-        <div style={{display:"flex",background:C.card,borderRadius:8,padding:3,marginBottom:22}}>
+        <div style={{display:"flex",background:C.card,borderRadius:9,padding:3,marginBottom:24,border:`1px solid ${C.border}`}}>
           {[["login","Entrar"],["register","Criar conta"]].map(([v,l])=>(
-            <button key={v} onClick={()=>setMode(v)} style={{flex:1,padding:"7px",borderRadius:6,border:"none",
-              cursor:"pointer",background:mode===v?C.accent:"transparent",color:mode===v?"#fff":C.muted,fontSize:13,fontWeight:600}}>
+            <button key={v} onClick={()=>setMode(v)} style={{flex:1,padding:"8px",borderRadius:7,border:"none",
+              cursor:"pointer",background:mode===v?C.accent:"transparent",
+              color:mode===v?"#fff":C.muted,fontSize:13,fontWeight:600,
+              transition:"all 0.2s ease"}}>
               {l}
             </button>
           ))}
         </div>
 
         {mode==="register" && (
-          <div style={{marginBottom:14}}>
-            <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Nome</label>
+          <div style={{marginBottom:16}}>
+            <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Nome</label>
             <input type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="Seu nome completo"
               style={inpSt(false)}/>
           </div>
         )}
 
         {[["E-mail","email",email,setEmail,"email"],["Senha","password",pass,setPass,"password"]].map(([l,id,v,s,t])=>(
-          <div key={id} style={{marginBottom:14}}>
-            <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>{l}</label>
+          <div key={id} style={{marginBottom:16}}>
+            <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>{l}</label>
             <input type={t} value={v} onChange={e=>s(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()}
               placeholder={t==="password"?"••••••••":"seu@email.com"} style={inpSt(false)}/>
           </div>
         ))}
 
         {err && (
-          <div style={{padding:"10px 12px",borderRadius:7,background:C.redSft,border:`1px solid ${C.red}33`,
-            color:C.red,fontSize:12,marginBottom:14,display:"flex",alignItems:"center",gap:7}}>
+          <div style={{padding:"10px 13px",borderRadius:8,background:C.redSft,border:`1px solid ${C.red}33`,
+            color:C.red,fontSize:12,marginBottom:16,display:"flex",alignItems:"center",gap:8}}>
             <AlertCircle size={13}/>{err}
           </div>
         )}
 
-        <button onClick={handle} disabled={loading} style={{width:"100%",padding:"12px",borderRadius:8,border:"none",
-          cursor:"pointer",background:loading?C.faint:C.accent,color:"#fff",fontSize:14,fontWeight:600,
-          display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-          {loading?<><Loader2 size={15} style={{animation:"spin .8s linear infinite"}}/>Aguarde...</>:
+        <button onClick={handle} disabled={loading} style={{...btn(loading?C.faint:C.accent,{width:"100%",padding:"12px",fontSize:14,
+          boxShadow:loading?"none":`0 4px 14px rgba(37,99,235,0.35)`})}} >
+          {loading?<><Loader2 size={15} style={{animation:"spin .8s linear infinite"}}/>Aguardando...</>:
           mode==="login"?"Entrar no Sistema":"Criar Conta"}
         </button>
       </div>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════
-   SIDEBAR (responsive — bottom nav on mobile)
+   SIDEBAR (responsivo — nav inferior no mobile)
 ═══════════════════════════════════════════════ */
 function Sidebar({active,set,user,onLogout}) {
   const nav=[
@@ -211,67 +219,86 @@ function Sidebar({active,set,user,onLogout}) {
   },[]);
 
   if(isMobile) return (
-    <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.surface,borderTop:`1px solid ${C.border}`,
-      display:"flex",alignItems:"center",justifyContent:"space-around",padding:"6px 0 env(safe-area-inset-bottom, 6px)",zIndex:999,
-      fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
+    <div style={{position:"fixed",bottom:0,left:0,right:0,background:C.surface,
+      borderTop:`1px solid ${C.border}`,
+      display:"flex",alignItems:"center",justifyContent:"space-around",
+      padding:"6px 0 env(safe-area-inset-bottom, 6px)",zIndex:999,
+      fontFamily:"'Outfit','Segoe UI',sans-serif",
+      backdropFilter:"blur(12px)"}}>
       {nav.map(({id,icon:Icon,label})=>{
         const on=active===id;
         return (
           <button key={id} onClick={()=>set(id)} style={{display:"flex",flexDirection:"column",alignItems:"center",
-            gap:2,padding:"4px 6px",border:"none",cursor:"pointer",background:"transparent",
-            color:on?C.accent:C.muted,fontSize:9,fontWeight:on?700:400}}>
+            gap:3,padding:"6px 8px",border:"none",cursor:"pointer",background:"transparent",
+            color:on?C.accent:C.muted,fontSize:9,fontWeight:on?700:400,
+            transition:"color 0.15s ease",borderRadius:8,minWidth:44,minHeight:44,justifyContent:"center"}}>
             <Icon size={18}/>{label}
           </button>
         );
       })}
       <button onClick={onLogout} style={{display:"flex",flexDirection:"column",alignItems:"center",
-        gap:2,padding:"4px 6px",border:"none",cursor:"pointer",background:"transparent",color:C.muted,fontSize:9}}>
+        gap:3,padding:"6px 8px",border:"none",cursor:"pointer",background:"transparent",color:C.muted,
+        fontSize:9,transition:"color 0.15s ease",borderRadius:8,minWidth:44,minHeight:44,justifyContent:"center"}}>
         <LogOut size={18}/>Sair
       </button>
     </div>
   );
 
   return (
-    <div style={{width:216,height:"100vh",background:C.surface,borderRight:`1px solid ${C.border}`,
+    <div style={{width:220,height:"100vh",background:C.surface,borderRight:`1px solid ${C.border}`,
       display:"flex",flexDirection:"column",flexShrink:0,fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{padding:"20px 16px 12px",borderBottom:`1px solid ${C.border}`}}>
-        <div style={{display:"flex",alignItems:"center",gap:9}}>
-          <div style={{width:32,height:32,borderRadius:8,background:C.accentSft,display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <Wallet size={16} color={C.accent}/>
+      <div style={{padding:"22px 18px 14px",borderBottom:`1px solid ${C.border}`}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:34,height:34,borderRadius:"50%",
+            background:`linear-gradient(135deg, #9B2335, #6B1522)`,
+            border:`1px solid rgba(155,35,53,0.4)`,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            boxShadow:`0 0 12px rgba(155,35,53,0.25), 0 2px 8px rgba(0,0,0,0.4)`}}>
+            <Wallet size={15} color="#F5E6D3"/>
           </div>
           <div>
-            <div style={{fontSize:13,fontWeight:700,color:C.text}}>FinanceControl</div>
-            <div style={{fontSize:10,color:C.muted}}>v2.6 · IFRS</div>
+            <div style={{fontSize:13,fontWeight:600,color:C.text,fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</div>
+            <div style={{fontSize:10,color:C.faint}}>v2.6 · IFRS</div>
           </div>
         </div>
       </div>
-      <nav style={{flex:1,padding:"8px 6px",overflowY:"auto"}}>
+
+      <nav style={{flex:1,padding:"10px 8px",overflowY:"auto"}}>
         {nav.map(({id,icon:Icon,label})=>{
           const on=active===id;
           return (
             <button key={id} onClick={()=>set(id)} style={{width:"100%",display:"flex",alignItems:"center",
-              gap:9,padding:"8px 11px",borderRadius:7,border:"none",cursor:"pointer",
-              background:on?C.accentSft:"transparent",color:on?C.accent:C.muted,
-              fontSize:12,fontWeight:on?600:400,marginBottom:1,textAlign:"left"}}>
-              <Icon size={14}/>{label}
+              gap:9,padding:"9px 12px",borderRadius:8,border:"none",cursor:"pointer",
+              background:on?C.accentSft:"transparent",
+              color:on?C.accent:C.muted,
+              fontSize:13,fontWeight:on?600:400,marginBottom:2,textAlign:"left",
+              position:"relative",transition:"all 0.15s ease",
+              borderLeft:on?`2px solid ${C.accent}`:"2px solid transparent"}}>
+              <Icon size={15}/>{label}
             </button>
           );
         })}
       </nav>
-      <div style={{padding:"12px 6px",borderTop:`1px solid ${C.border}`}}>
-        <div style={{display:"flex",alignItems:"center",gap:8,padding:"7px 11px",marginBottom:3}}>
-          <div style={{width:30,height:30,borderRadius:"50%",background:C.accent,display:"flex",
-            alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,color:"#fff",flexShrink:0}}>
+
+      <div style={{padding:"12px 8px",borderTop:`1px solid ${C.border}`}}>
+        <div style={{display:"flex",alignItems:"center",gap:9,padding:"8px 12px",marginBottom:4,
+          background:C.card,borderRadius:8,border:`1px solid ${C.border}`}}>
+          <div style={{width:30,height:30,borderRadius:"50%",
+            background:`linear-gradient(135deg, ${C.accent}, #1d4ed8)`,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            fontSize:12,fontWeight:700,color:"#fff",flexShrink:0,
+            boxShadow:"0 2px 8px rgba(37,99,235,0.35)"}}>
             {user?.name?.charAt(0)?.toUpperCase()}
           </div>
           <div style={{flex:1,overflow:"hidden"}}>
             <div style={{fontSize:12,fontWeight:600,color:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{user?.name}</div>
-            <div style={{fontSize:10,color:C.muted}}>Administrador</div>
+            <div style={{fontSize:10,color:C.faint}}>Administrador</div>
           </div>
         </div>
         <button onClick={onLogout} style={{width:"100%",display:"flex",alignItems:"center",gap:8,
-          padding:"7px 11px",borderRadius:7,border:"none",cursor:"pointer",background:"transparent",color:C.muted,fontSize:12}}>
-          <LogOut size={12}/>Sair
+          padding:"8px 12px",borderRadius:8,border:"none",cursor:"pointer",
+          background:"transparent",color:C.muted,fontSize:12,transition:"color 0.15s ease"}}>
+          <LogOut size={12}/>Sair da conta
         </button>
       </div>
     </div>
@@ -283,16 +310,17 @@ function Sidebar({active,set,user,onLogout}) {
 ═══════════════════════════════════════════════ */
 function Loading() {
   return (
-    <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:300}}>
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:300,gap:14}}>
       <Loader2 size={28} color={C.accent} style={{animation:"spin .9s linear infinite"}}/>
+      <span style={{fontSize:12,color:C.muted}}>Carregando...</span>
     </div>
   );
 }
 function ErrMsg({msg}) {
   return (
-    <div style={{padding:"14px 18px",borderRadius:8,background:C.redSft,border:`1px solid ${C.red}33`,
-      color:C.red,fontSize:13,display:"flex",alignItems:"center",gap:8}}>
-      <AlertCircle size={14}/>{msg}
+    <div style={{padding:"13px 16px",borderRadius:9,background:C.redSft,border:`1px solid ${C.red}33`,
+      color:C.red,fontSize:13,display:"flex",alignItems:"center",gap:9}}>
+      <AlertCircle size={15}/>{msg}
     </div>
   );
 }
@@ -337,12 +365,15 @@ function DashboardTab({api}) {
   const varRec = previous.total_receitas ? ((rec-previous.total_receitas)/previous.total_receitas*100) : 0;
   const varSal = previous.saldo          ? ((sal-previous.saldo)/Math.abs(previous.saldo)*100)          : 0;
 
+  const [mes, ano] = currentPeriod.split("-");
+  const periodoFmt = `${mes}/${ano}`;
+
   return (
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{marginBottom:22,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div>
-          <h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>Dashboard</h2>
-          <p style={{color:C.muted,fontSize:13,margin:"3px 0 0"}}>Período: {currentPeriod.replace("-","/")} </p>
+          <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Dashboard</h2>
+          <p style={{color:C.muted,fontSize:13,margin:"4px 0 0"}}>Período: {periodoFmt}</p>
         </div>
       </div>
 
@@ -354,19 +385,22 @@ function DashboardTab({api}) {
           ["Saldo",sal,varSal,Wallet,C.gold],
           ["Parcelas Futuras",projTotal,null,CreditCard,C.purple],
         ].map(([t,v,chg,Icon,color])=>(
-          <div key={t} style={{...card(),flex:1,minWidth:150}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-              <span style={{fontSize:10,fontWeight:600,color:C.muted,textTransform:"uppercase",letterSpacing:"0.05em"}}>{t}</span>
-              <div style={{width:28,height:28,borderRadius:7,background:color+"22",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div key={t} style={{...card(),flex:1,minWidth:150,
+            boxShadow:`inset 0 2px 0 0 ${color}33`,
+            transition:"transform 0.15s ease, box-shadow 0.15s ease"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+              <span style={{fontSize:10,fontWeight:600,color:C.muted,textTransform:"uppercase",letterSpacing:"0.06em"}}>{t}</span>
+              <div style={{width:30,height:30,borderRadius:8,background:color+"18",
+                display:"flex",alignItems:"center",justifyContent:"center",border:`1px solid ${color}22`}}>
                 <Icon size={13} color={color}/>
               </div>
             </div>
             <div style={{fontSize:18,fontWeight:700,color:C.text,fontFamily:"'Space Mono',monospace"}}>{fmt(v)}</div>
             {chg!=null && (
-              <div style={{display:"flex",alignItems:"center",gap:3,fontSize:10,marginTop:4}}>
+              <div style={{display:"flex",alignItems:"center",gap:4,fontSize:10,marginTop:6}}>
                 {chg>=0?<TrendingUp size={10} color={C.green}/>:<TrendingDown size={10} color={C.red}/>}
                 <span style={{color:chg>=0?C.green:C.red,fontWeight:600}}>{chg>0?"+":""}{chg.toFixed(1)}%</span>
-                <span style={{color:C.faint}}>vs mês ant.</span>
+                <span style={{color:C.faint}}>vs mês anterior</span>
               </div>
             )}
           </div>
@@ -377,21 +411,21 @@ function DashboardTab({api}) {
       {summary.length > 0 && (
         <div style={{display:"flex",gap:10,marginBottom:10,flexWrap:"wrap"}}>
           <div style={{...card(),flex:2,minWidth:300}}>
-            <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:12}}>Evolução Mensal</div>
+            <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:14}}>Evolução Mensal</div>
             <ResponsiveContainer width="100%" height={190}>
               <AreaChart data={summary} margin={{top:0,right:0,left:-20,bottom:0}}>
                 <defs>
                   <linearGradient id="gR" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={C.green} stopOpacity={.2}/><stop offset="95%" stopColor={C.green} stopOpacity={0}/>
+                    <stop offset="5%" stopColor={C.green} stopOpacity={.25}/><stop offset="95%" stopColor={C.green} stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="gD" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={C.red} stopOpacity={.2}/><stop offset="95%" stopColor={C.red} stopOpacity={0}/>
+                    <stop offset="5%" stopColor={C.red} stopOpacity={.25}/><stop offset="95%" stopColor={C.red} stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+                <CartesianGrid strokeDasharray="3 3" stroke={C.border} strokeOpacity={0.6}/>
                 <XAxis dataKey="periodo_referencia" tick={{fill:C.muted,fontSize:10}}/>
                 <YAxis tick={{fill:C.muted,fontSize:10}} tickFormatter={v=>`${(v/1000).toFixed(0)}k`}/>
-                <Tooltip contentStyle={{background:C.cardB,border:`1px solid ${C.border}`,borderRadius:8,fontSize:12}}
+                <Tooltip contentStyle={{background:C.cardB,border:`1px solid ${C.border}`,borderRadius:9,fontSize:12,boxShadow:"0 8px 24px rgba(0,0,0,0.4)"}}
                   formatter={v=>fmt(v)}/>
                 <Area type="monotone" dataKey="total_receitas" name="Receitas" stroke={C.green} fill="url(#gR)" strokeWidth={2}/>
                 <Area type="monotone" dataKey="total_despesas" name="Despesas" stroke={C.red}   fill="url(#gD)" strokeWidth={2}/>
@@ -401,13 +435,13 @@ function DashboardTab({api}) {
 
           {catData.length>0 && (
             <div style={{...card(),flex:1,minWidth:220}}>
-              <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:12}}>Por Categoria</div>
+              <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:14}}>Por Categoria</div>
               <ResponsiveContainer width="100%" height={190}>
                 <BarChart data={catData} layout="vertical" margin={{top:0,right:0,left:40,bottom:0}}>
                   <XAxis type="number" tick={{fill:C.muted,fontSize:10}} tickFormatter={v=>fmt(v)}/>
                   <YAxis type="category" dataKey="name" tick={{fill:C.muted,fontSize:10}} width={80}/>
-                  <Tooltip formatter={v=>fmt(v)} contentStyle={{background:C.cardB,border:`1px solid ${C.border}`,borderRadius:8,fontSize:12}}/>
-                  <Bar dataKey="value" fill={C.accent} radius={[0,4,4,0]}/>
+                  <Tooltip formatter={v=>fmt(v)} contentStyle={{background:C.cardB,border:`1px solid ${C.border}`,borderRadius:9,fontSize:12,boxShadow:"0 8px 24px rgba(0,0,0,0.4)"}}/>
+                  <Bar dataKey="value" fill={C.accent} radius={[0,5,5,0]}/>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -415,20 +449,21 @@ function DashboardTab({api}) {
         </div>
       )}
 
-      {/* Projection */}
+      {/* Projeção de parcelas */}
       {proj.length>0 && (
         <div style={{...card()}}>
-          <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:12,display:"flex",alignItems:"center",gap:8}}>
-            <Clock size={13} color={C.gold}/> Parcelas Futuras
-            <span style={{...pill(C.gold)}}>{proj.length} compromissos</span>
+          <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:14,display:"flex",alignItems:"center",gap:9}}>
+            <Clock size={14} color={C.gold}/> Parcelas Futuras
+            <span style={{...pill(C.gold)}}>{proj.length} compromisso{proj.length>1?"s":""}</span>
           </div>
           <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
             {proj.map((p,i)=>(
-              <div key={i} style={{flex:1,minWidth:160,background:C.surface,borderRadius:8,padding:"11px 14px",
-                border:`1px solid ${C.border}`,borderLeft:`3px solid ${C.gold}`}}>
-                <div style={{fontSize:11,fontWeight:600,color:C.text,marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.description}</div>
-                <div style={{fontSize:15,fontWeight:700,color:C.gold,fontFamily:"monospace"}}>{fmt(p.monthly_amount)}/mês</div>
-                <div style={{fontSize:11,color:C.muted,marginTop:2}}>{p.remaining}× restantes</div>
+              <div key={i} style={{flex:1,minWidth:160,background:C.surface,borderRadius:9,padding:"12px 14px",
+                border:`1px solid ${C.border}`,borderLeft:`3px solid ${C.gold}`,
+                transition:"transform 0.15s ease"}}>
+                <div style={{fontSize:11,fontWeight:600,color:C.text,marginBottom:5,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.description}</div>
+                <div style={{fontSize:15,fontWeight:700,color:C.gold,fontFamily:"'Space Mono',monospace"}}>{fmt(p.monthly_amount)}<span style={{fontSize:11,fontWeight:400,color:C.muted}}>/mês</span></div>
+                <div style={{fontSize:11,color:C.muted,marginTop:3}}>{p.remaining} parcela{p.remaining>1?"s":""} restante{p.remaining>1?"s":""}</div>
               </div>
             ))}
           </div>
@@ -436,9 +471,11 @@ function DashboardTab({api}) {
       )}
 
       {summary.length===0 && (
-        <div style={{...card({background:C.surface}),textAlign:"center",padding:"48px 24px"}}>
-          <Wallet size={36} color={C.faint} style={{marginBottom:12}}/>
-          <p style={{color:C.muted,margin:0}}>Nenhum dado ainda. Cadastre lançamentos ou importe uma fatura PDF.</p>
+        <div style={{...card({background:C.surface}),textAlign:"center",padding:"56px 24px"}}>
+          <div style={{width:56,height:56,borderRadius:16,background:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
+            <Wallet size={24} color={C.faint}/>
+          </div>
+          <p style={{color:C.muted,margin:0,fontSize:14}}>Nenhum dado disponível. Cadastre lançamentos ou importe uma fatura PDF.</p>
         </div>
       )}
     </div>
@@ -462,7 +499,7 @@ function TxModal({onClose, onSaved, api, categories, cards}) {
     if(!f.desc.trim())   e.desc     = "Obrigatório";
     if(!f.supplier.trim())e.supplier= "Obrigatório";
     if(!f.amount||isNaN(Number(f.amount))||Number(f.amount)<=0) e.amount="Valor inválido";
-    if(f.inst && !/^\d{2}\/\d{2}$/.test(f.inst)) e.inst="Formato: 02/10";
+    if(f.inst && !/^\d{2}\/\d{2}$/.test(f.inst)) e.inst="Formato esperado: 02/10";
     return e;
   };
 
@@ -487,21 +524,27 @@ function TxModal({onClose, onSaved, api, categories, cards}) {
   };
 
   return (
-    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.76)",
-      display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
-      <div onClick={e=>e.stopPropagation()} style={{...card({background:C.surface,boxShadow:"0 32px 72px rgba(0,0,0,.65)"}),
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.78)",
+      display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16,
+      backdropFilter:"blur(4px)"}}>
+      <div onClick={e=>e.stopPropagation()} style={{...card({background:C.surface,
+        boxShadow:"0 0 0 1px rgba(255,255,255,0.04), 0 32px 80px rgba(0,0,0,0.7)"}),
         width:"100%",maxWidth:500,maxHeight:"92vh",overflowY:"auto"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
-          <h3 style={{margin:0,fontSize:15,fontWeight:700,color:C.text}}>Novo Lançamento</h3>
-          <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",color:C.muted}}><X size={17}/></button>
+
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <h3 style={{margin:0,fontSize:16,fontWeight:700,color:C.text,letterSpacing:"-0.01em"}}>Novo Lançamento</h3>
+          <button onClick={onClose} style={{background:C.card,border:`1px solid ${C.border}`,cursor:"pointer",color:C.muted,width:30,height:30,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",transition:"color 0.15s ease"}}>
+            <X size={15}/>
+          </button>
         </div>
 
         {/* Tipo */}
-        <div style={{display:"flex",gap:8,marginBottom:16}}>
-          {[["D","▼ Despesa",C.red],["R","▲ Receita",C.green]].map(([v,l,c])=>(
-            <button key={v} onClick={()=>setF({...f,type:v})} style={{flex:1,padding:"10px",borderRadius:8,
-              border:`2px solid ${f.type===v?c:C.border}`,background:f.type===v?c+"22":"transparent",
-              color:f.type===v?c:C.muted,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+        <div style={{display:"flex",gap:8,marginBottom:18}}>
+          {[["D","▼  Despesa",C.red],["R","▲  Receita",C.green]].map(([v,l,c])=>(
+            <button key={v} onClick={()=>setF({...f,type:v})} style={{flex:1,padding:"11px",borderRadius:9,
+              border:`2px solid ${f.type===v?c:C.border}`,background:f.type===v?c+"18":"transparent",
+              color:f.type===v?c:C.muted,fontSize:13,fontWeight:700,cursor:"pointer",
+              transition:"all 0.15s ease"}}>
               {l}
             </button>
           ))}
@@ -510,38 +553,38 @@ function TxModal({onClose, onSaved, api, categories, cards}) {
         {/* Data + Valor */}
         <div style={{display:"flex",gap:12,marginBottom:14}}>
           <div style={{flex:1}}>
-            <label style={{display:"block",fontSize:11,fontWeight:600,color:err.date?C.red:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Data *</label>
+            <label style={{display:"block",fontSize:11,fontWeight:600,color:err.date?C.red:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Data *</label>
             <input type="date" value={f.date} onChange={e=>setF({...f,date:e.target.value})} style={inpSt(err.date)}/>
-            {err.date&&<span style={{color:C.red,fontSize:10}}>{err.date}</span>}
+            {err.date&&<span style={{color:C.red,fontSize:10,marginTop:3,display:"block"}}>{err.date}</span>}
           </div>
           <div style={{flex:1}}>
-            <label style={{display:"block",fontSize:11,fontWeight:600,color:err.amount?C.red:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Valor (R$) *</label>
+            <label style={{display:"block",fontSize:11,fontWeight:600,color:err.amount?C.red:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Valor (R$) *</label>
             <input type="number" min="0.01" step="0.01" placeholder="0,00" value={f.amount}
               onChange={e=>setF({...f,amount:e.target.value})} style={inpSt(err.amount)}/>
-            {err.amount&&<span style={{color:C.red,fontSize:10}}>{err.amount}</span>}
+            {err.amount&&<span style={{color:C.red,fontSize:10,marginTop:3,display:"block"}}>{err.amount}</span>}
           </div>
         </div>
 
         {/* Descrição */}
         <div style={{marginBottom:14}}>
-          <label style={{display:"block",fontSize:11,fontWeight:600,color:err.desc?C.red:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Descrição *</label>
+          <label style={{display:"block",fontSize:11,fontWeight:600,color:err.desc?C.red:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Descrição *</label>
           <input type="text" placeholder="Ex: SUPERMERCADO EXTRA" value={f.desc}
             onChange={e=>setF({...f,desc:e.target.value})} style={inpSt(err.desc)}/>
-          {err.desc&&<span style={{color:C.red,fontSize:10}}>{err.desc}</span>}
+          {err.desc&&<span style={{color:C.red,fontSize:10,marginTop:3,display:"block"}}>{err.desc}</span>}
         </div>
 
         {/* Fornecedor */}
         <div style={{marginBottom:14}}>
-          <label style={{display:"block",fontSize:11,fontWeight:600,color:err.supplier?C.red:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Fornecedor *</label>
+          <label style={{display:"block",fontSize:11,fontWeight:600,color:err.supplier?C.red:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Fornecedor *</label>
           <input type="text" placeholder="Ex: Extra, iFood, Uber..." value={f.supplier}
             onChange={e=>setF({...f,supplier:e.target.value})} style={inpSt(err.supplier)}/>
-          {err.supplier&&<span style={{color:C.red,fontSize:10}}>{err.supplier}</span>}
+          {err.supplier&&<span style={{color:C.red,fontSize:10,marginTop:3,display:"block"}}>{err.supplier}</span>}
         </div>
 
         {/* Categoria + Cartão */}
         <div style={{display:"flex",gap:12,marginBottom:14}}>
           <div style={{flex:1}}>
-            <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Categoria IFRS</label>
+            <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Categoria IFRS</label>
             <select value={f.cat_id} onChange={e=>setF({...f,cat_id:e.target.value})} style={{...selSt,width:"100%",padding:"9px 12px"}}>
               <option value="">— Sem categoria</option>
               {categories.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
@@ -549,7 +592,7 @@ function TxModal({onClose, onSaved, api, categories, cards}) {
           </div>
           {f.type==="D" && (
             <div style={{flex:1}}>
-              <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Cartão</label>
+              <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Cartão</label>
               <select value={f.card_id} onChange={e=>setF({...f,card_id:e.target.value})} style={{...selSt,width:"100%",padding:"9px 12px"}}>
                 <option value="">— Sem cartão</option>
                 {cards.map(c=><option key={c.id} value={c.id}>{c.name} ({c.bank})</option>)}
@@ -560,41 +603,40 @@ function TxModal({onClose, onSaved, api, categories, cards}) {
 
         {/* Parcela (só despesa) */}
         {f.type==="D" && (
-          <div style={{marginBottom:18,padding:"12px 14px",background:C.card,borderRadius:8,border:`1px solid ${C.border}`}}>
-            <p style={{fontSize:11,fontWeight:600,color:C.muted,margin:"0 0 10px",textTransform:"uppercase",letterSpacing:"0.04em"}}>
-              Compra Parcelada (opcional)
+          <div style={{marginBottom:18,padding:"14px 16px",background:C.card,borderRadius:9,border:`1px solid ${C.border}`}}>
+            <p style={{fontSize:11,fontWeight:600,color:C.muted,margin:"0 0 12px",textTransform:"uppercase",letterSpacing:"0.06em"}}>
+              Compra Parcelada <span style={{color:C.faint,fontWeight:400,textTransform:"none",letterSpacing:0}}>(opcional)</span>
             </p>
             <div style={{display:"flex",gap:12,alignItems:"flex-start"}}>
               <div style={{flex:1}}>
-                <label style={{fontSize:11,color:err.inst?C.red:C.muted,display:"block",marginBottom:4}}>Parcela (ex: 01/12)</label>
+                <label style={{fontSize:11,color:err.inst?C.red:C.muted,display:"block",marginBottom:5,fontWeight:600}}>Parcela (ex: 01/12)</label>
                 <input type="text" placeholder="01/12" maxLength={5} value={f.inst}
                   onChange={e=>setF({...f,inst:e.target.value})} style={inpSt(err.inst)}/>
-                {err.inst&&<span style={{color:C.red,fontSize:10}}>{err.inst}</span>}
+                {err.inst&&<span style={{color:C.red,fontSize:10,marginTop:3,display:"block"}}>{err.inst}</span>}
               </div>
-              <div style={{flex:1,paddingTop:20,fontSize:12,color:C.muted}}>
+              <div style={{flex:1,paddingTop:22,fontSize:12,color:C.muted}}>
                 {f.inst&&f.amount?
-                  <span style={{color:C.gold}}>Projetará {f.inst.split("/")[1]||"?"} meses a {fmt(f.amount)}</span>:
-                  <span style={{color:C.faint}}>Preencha para ver projeção</span>}
+                  <span style={{color:C.gold}}>Serão {f.inst.split("/")[1]||"?"} parcelas de {fmt(f.amount)}</span>:
+                  <span style={{color:C.faint}}>Preencha para ver a projeção</span>}
               </div>
             </div>
           </div>
         )}
 
-        {err.api && <ErrMsg msg={err.api}/>}
+        {err.api && <div style={{marginBottom:14}}><ErrMsg msg={err.api}/></div>}
 
         {saved ? (
-          <div style={{padding:"13px",borderRadius:8,background:C.greenSft,border:`1px solid ${C.green}44`,
+          <div style={{padding:"14px",borderRadius:9,background:C.greenSft,border:`1px solid ${C.green}44`,
             display:"flex",alignItems:"center",gap:10,justifyContent:"center"}}>
-            <CheckCircle2 size={17} color={C.green}/>
-            <span style={{color:C.green,fontWeight:600,fontSize:14}}>Lançamento salvo!</span>
+            <CheckCircle2 size={18} color={C.green}/>
+            <span style={{color:C.green,fontWeight:600,fontSize:14}}>Lançamento salvo com sucesso!</span>
           </div>
         ) : (
           <div style={{display:"flex",gap:8,marginTop:4}}>
-            <button onClick={onClose} style={{flex:1,padding:"10px",borderRadius:8,border:`1px solid ${C.border}`,
-              background:"transparent",color:C.muted,fontSize:13,cursor:"pointer"}}>Cancelar</button>
-            <button onClick={handle} disabled={loading} style={{flex:2,padding:"10px",borderRadius:8,border:"none",
-              cursor:"pointer",background:f.type==="D"?C.red:C.green,color:"#fff",fontSize:13,fontWeight:700,
-              display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <button onClick={onClose} style={{flex:1,padding:"11px",borderRadius:8,border:`1px solid ${C.border}`,
+              background:"transparent",color:C.muted,fontSize:13,cursor:"pointer",transition:"border-color 0.15s ease, color 0.15s ease"}}>Cancelar</button>
+            <button onClick={handle} disabled={loading} style={{...btn(f.type==="D"?C.red:C.green,{flex:2,padding:"11px",
+              boxShadow:`0 4px 14px ${(f.type==="D"?C.red:C.green)}33`})}}>
               {loading?<Loader2 size={14} style={{animation:"spin .8s linear infinite"}}/>:<CheckCircle2 size={14}/>}
               {f.type==="D"?"Registrar Despesa":"Registrar Receita"}
             </button>
@@ -642,39 +684,39 @@ function TransactionsTab({api}) {
 
   return (
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{marginBottom:14,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div>
-          <h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>Lançamentos</h2>
-          <p style={{color:C.muted,fontSize:13,margin:"3px 0 0"}}>{txList.length} transações · saldo&nbsp;
+          <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Lançamentos</h2>
+          <p style={{color:C.muted,fontSize:13,margin:"4px 0 0"}}>{txList.length} transaç{txList.length===1?"ão":"ões"} · saldo&nbsp;
             <strong style={{color:rec-des>=0?C.green:C.red}}>{fmt(rec-des)}</strong>
           </p>
         </div>
-        <button onClick={()=>setModal(true)} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 16px",
-          borderRadius:8,border:"none",cursor:"pointer",background:C.accent,color:"#fff",fontSize:13,fontWeight:600}}>
-          <Plus size={14}/>Novo Lançamento
+        <button onClick={()=>setModal(true)} style={{...btn(C.accent,{boxShadow:"0 4px 14px rgba(37,99,235,0.35)"})}}>
+          <Plus size={15}/>Novo Lançamento
         </button>
       </div>
 
       {/* Totais */}
       <div style={{display:"flex",gap:8,marginBottom:12}}>
         {[["Receitas",rec,C.green],["Despesas",des,C.red],["Saldo",rec-des,rec-des>=0?C.green:C.red]].map(([l,v,c])=>(
-          <div key={l} style={{flex:1,background:C.card,border:`1px solid ${C.border}`,borderRadius:9,padding:"9px 14px"}}>
-            <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:3}}>{l}</div>
-            <div style={{fontSize:15,fontWeight:700,color:c,fontFamily:"monospace"}}>{fmt(v)}</div>
+          <div key={l} style={{flex:1,background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"10px 14px",
+            boxShadow:`inset 0 2px 0 0 ${c}22`}}>
+            <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:4}}>{l}</div>
+            <div style={{fontSize:15,fontWeight:700,color:c,fontFamily:"'Space Mono',monospace"}}>{fmt(v)}</div>
           </div>
         ))}
       </div>
 
-      {/* Filters */}
+      {/* Filtros */}
       <div style={{...card({padding:"10px 14px"}),marginBottom:10,display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
         <input type="month" value={periodo} onChange={e=>setPeriodo(e.target.value)}
           style={{...selSt,padding:"7px 10px"}}/>
         <div style={{display:"flex",alignItems:"center",gap:7,flex:1,minWidth:160,background:C.surface,
-          borderRadius:7,border:`1px solid ${C.border}`,padding:"7px 10px"}}>
+          borderRadius:7,border:`1px solid ${C.border}`,padding:"7px 10px",transition:"border-color 0.15s ease"}}>
           <Search size={12} color={C.muted}/>
           <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar..."
             style={{background:"transparent",border:"none",outline:"none",color:C.text,fontSize:12,flex:1}}/>
-          {search&&<button onClick={()=>setSearch("")} style={{background:"none",border:"none",cursor:"pointer",color:C.muted,padding:0}}><X size={11}/></button>}
+          {search&&<button onClick={()=>setSearch("")} style={{background:"none",border:"none",cursor:"pointer",color:C.muted,padding:0,display:"flex"}}><X size={11}/></button>}
         </div>
         <select value={fType} onChange={e=>setFType(e.target.value)} style={selSt}>
           <option value="all">Todos</option><option value="D">Despesas</option><option value="R">Receitas</option>
@@ -682,55 +724,55 @@ function TransactionsTab({api}) {
         <span style={{...pill(C.accent),fontSize:10}}><Filter size={9}/>{txList.length}</span>
       </div>
 
-      {err && <ErrMsg msg={err}/>}
+      {err && <div style={{marginBottom:10}}><ErrMsg msg={err}/></div>}
       {loading ? <Loading/> : (
         <div style={{...card({padding:0}),overflow:"hidden"}}>
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
             <thead>
               <tr style={{background:C.surface}}>
                 {["Data","Descrição","Parcela","Cartão","Categoria","Valor","Tipo",""].map(h=>(
-                  <th key={h} style={{padding:"9px 12px",textAlign:"left",color:C.muted,fontWeight:600,
-                    fontSize:10,textTransform:"uppercase",letterSpacing:"0.04em",borderBottom:`1px solid ${C.border}`}}>{h}</th>
+                  <th key={h} style={{padding:"10px 12px",textAlign:"left",color:C.muted,fontWeight:600,
+                    fontSize:10,textTransform:"uppercase",letterSpacing:"0.06em",borderBottom:`1px solid ${C.border}`}}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {txList.length===0 && (
-                <tr><td colSpan={8} style={{padding:"32px",textAlign:"center",color:C.muted,fontSize:13}}>
+                <tr><td colSpan={8} style={{padding:"40px",textAlign:"center",color:C.muted,fontSize:13}}>
                   Nenhuma transação neste período.
                 </td></tr>
               )}
               {txList.map((t,i)=>(
-                <tr key={t.id} style={{borderBottom:`1px solid ${C.border}22`,background:i%2===0?"transparent":C.surface+"55"}}>
-                  <td style={{padding:"8px 12px",color:C.muted,fontFamily:"monospace",fontSize:11}}>{fmtD(t.date)}</td>
-                  <td style={{padding:"8px 12px"}}>
+                <tr key={t.id} style={{borderBottom:`1px solid ${C.border}22`,background:i%2===0?"transparent":C.surface+"55",transition:"background 0.1s ease"}}>
+                  <td style={{padding:"9px 12px",color:C.muted,fontFamily:"'Space Mono',monospace",fontSize:11}}>{fmtD(t.date)}</td>
+                  <td style={{padding:"9px 12px"}}>
                     <div style={{color:C.text,fontWeight:500}}>{t.description}</div>
-                    <div style={{color:C.muted,fontSize:11}}>{t.supplier}</div>
+                    <div style={{color:C.muted,fontSize:11,marginTop:1}}>{t.supplier}</div>
                   </td>
-                  <td style={{padding:"8px 12px"}}>
+                  <td style={{padding:"9px 12px"}}>
                     {t.installment_current?<span style={{...pill(C.purple),fontSize:10}}>{t.installment_current}/{t.installment_total}</span>:<span style={{color:C.faint}}>—</span>}
                   </td>
-                  <td style={{padding:"8px 12px",color:C.muted,fontSize:11}}>{t.card?.name||"—"}</td>
-                  <td style={{padding:"8px 12px"}}>
+                  <td style={{padding:"9px 12px",color:C.muted,fontSize:11}}>{t.card?.name||"—"}</td>
+                  <td style={{padding:"9px 12px"}}>
                     {t.category?<span style={{...pill(t.category.color||C.accent),fontSize:10}}>{t.category.icon} {t.category.name}</span>:<span style={{color:C.faint}}>—</span>}
                   </td>
-                  <td style={{padding:"8px 12px",fontFamily:"monospace",fontWeight:700,color:t.type==="R"?C.green:C.red}}>
+                  <td style={{padding:"9px 12px",fontFamily:"'Space Mono',monospace",fontWeight:700,color:t.type==="R"?C.green:C.red}}>
                     {t.type==="R"?"+":"-"}{fmt(t.amount)}
                   </td>
-                  <td style={{padding:"8px 12px"}}>
+                  <td style={{padding:"9px 12px"}}>
                     <span style={{...pill(t.type==="R"?C.green:C.red),fontSize:10}}>{t.type==="R"?"Receita":"Despesa"}</span>
                   </td>
-                  <td style={{padding:"8px 8px"}}>
+                  <td style={{padding:"9px 8px"}}>
                     {delId===t.id?(
-                      <div style={{display:"flex",gap:3}}>
-                        <button onClick={()=>handleDelete(t.id)} style={{padding:"3px 7px",borderRadius:5,border:"none",background:C.red,color:"#fff",fontSize:10,cursor:"pointer",fontWeight:600}}>Sim</button>
-                        <button onClick={()=>setDelId(null)} style={{padding:"3px 7px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:10,cursor:"pointer"}}>Não</button>
+                      <div style={{display:"flex",gap:4}}>
+                        <button onClick={()=>handleDelete(t.id)} style={{padding:"3px 8px",borderRadius:5,border:"none",background:C.red,color:"#fff",fontSize:10,cursor:"pointer",fontWeight:600}}>Sim</button>
+                        <button onClick={()=>setDelId(null)} style={{padding:"3px 8px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:10,cursor:"pointer"}}>Não</button>
                       </div>
                     ):(
-                      <button onClick={()=>setDelId(t.id)} style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:3}}
+                      <button onClick={()=>setDelId(t.id)} style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:4,display:"flex",borderRadius:5,transition:"color 0.15s ease"}}
                         onMouseEnter={e=>e.currentTarget.style.color=C.red}
                         onMouseLeave={e=>e.currentTarget.style.color=C.faint}>
-                        <Trash2 size={12}/>
+                        <Trash2 size={13}/>
                       </button>
                     )}
                   </td>
@@ -763,7 +805,7 @@ function ImportTab({api}) {
   useEffect(()=>{ api("/cards").then(setCards).catch(()=>{}); },[]);
 
   const handleFile = async (f) => {
-    if(!f||!f.name.endsWith(".pdf")){ setErr("Apenas arquivos PDF."); return; }
+    if(!f||!f.name.endsWith(".pdf")){ setErr("Apenas arquivos PDF são aceitos."); return; }
     setFile(f); setErr(""); setStep("parsing"); setProg(0);
     const fakeProgress = setInterval(()=>setProg(p=>{ if(p>=85){clearInterval(fakeProgress);} return Math.min(p+10,85); }), 200);
     try {
@@ -789,59 +831,62 @@ function ImportTab({api}) {
 
   if(step==="parsing") return (
     <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:360}}>
-      <div style={{...card({background:C.surface,width:420,textAlign:"center"})}}>
-        <Loader2 size={28} color={C.accent} style={{animation:"spin .9s linear infinite",marginBottom:16}}/>
-        <h3 style={{color:C.text,fontSize:15,fontWeight:700,margin:"0 0 8px"}}>Processando PDF</h3>
-        <p style={{color:C.muted,fontSize:13,margin:"0 0 20px"}}>Identificando banco e extraindo transações...</p>
-        <div style={{background:C.border,borderRadius:6,height:7,overflow:"hidden"}}>
-          <div style={{background:`linear-gradient(90deg,${C.accent},${C.teal})`,height:"100%",width:`${prog}%`,borderRadius:6,transition:"width .2s"}}/>
+      <div style={{...card({background:C.surface,width:440,textAlign:"center",
+        boxShadow:"0 0 0 1px rgba(37,99,235,0.08), 0 32px 72px rgba(0,0,0,0.5)"})}}>
+        <div style={{width:56,height:56,borderRadius:16,background:C.accentSft,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px",border:`1px solid rgba(37,99,235,0.2)`}}>
+          <Loader2 size={24} color={C.accent} style={{animation:"spin .9s linear infinite"}}/>
         </div>
-        <p style={{color:C.accent,fontFamily:"monospace",marginTop:8}}>{Math.round(prog)}%</p>
+        <h3 style={{color:C.text,fontSize:16,fontWeight:700,margin:"0 0 8px",letterSpacing:"-0.01em"}}>Processando PDF</h3>
+        <p style={{color:C.muted,fontSize:13,margin:"0 0 24px"}}>Identificando banco e extraindo transações...</p>
+        <div style={{background:C.border,borderRadius:8,height:8,overflow:"hidden"}}>
+          <div style={{background:`linear-gradient(90deg,${C.accent},${C.teal})`,height:"100%",width:`${prog}%`,borderRadius:8,transition:"width .2s ease"}}/>
+        </div>
+        <p style={{color:C.accent,fontFamily:"'Space Mono',monospace",marginTop:10,fontSize:14,fontWeight:700}}>{Math.round(prog)}%</p>
       </div>
     </div>
   );
 
   if(step==="preview"&&preview) return (
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{marginBottom:18,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
         <div>
-          <h2 style={{fontSize:18,fontWeight:700,color:C.text,margin:0}}>Pré-visualização da Fatura</h2>
-          <p style={{color:C.muted,fontSize:13,margin:"3px 0 0"}}>
+          <h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em"}}>Pré-visualização da Fatura</h2>
+          <p style={{color:C.muted,fontSize:13,margin:"4px 0 0"}}>
             <strong style={{color:C.accent}}>{preview.bank}</strong> · {preview.total_transactions} transações · Total: <strong style={{color:C.red}}>{fmt(preview.total_amount)}</strong>
           </p>
         </div>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+        <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
           <select value={cardId} onChange={e=>setCardId(e.target.value)} style={{...selSt,padding:"9px 14px"}}>
             <option value="">Selecione o cartão...</option>
             {cards.map(c=><option key={c.id} value={c.id}>{c.name} ({c.bank})</option>)}
           </select>
-          <button onClick={()=>setStep("upload")} style={{padding:"9px 14px",borderRadius:8,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:13,cursor:"pointer"}}>Cancelar</button>
-          <button onClick={handleConfirm} disabled={importing} style={{padding:"9px 16px",borderRadius:8,border:"none",background:C.green,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:7}}>
-            {importing?<Loader2 size={13} style={{animation:"spin .8s linear infinite"}}/>:<CheckCircle2 size={13}/>}Confirmar
+          <button onClick={()=>setStep("upload")} style={{padding:"9px 14px",borderRadius:8,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:13,cursor:"pointer",transition:"border-color 0.15s ease"}}>Cancelar</button>
+          <button onClick={handleConfirm} disabled={importing} style={{...btn(C.green,{boxShadow:"0 4px 14px rgba(16,185,129,0.3)"})}}>
+            {importing?<Loader2 size={13} style={{animation:"spin .8s linear infinite"}}/>:<CheckCircle2 size={13}/>}Confirmar Importação
           </button>
         </div>
       </div>
-      {err&&<div style={{marginBottom:12}}><ErrMsg msg={err}/></div>}
+      {err&&<div style={{marginBottom:14}}><ErrMsg msg={err}/></div>}
       <div style={{...card({padding:0}),overflow:"hidden"}}>
         <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
           <thead>
             <tr style={{background:C.surface}}>
               {["Data","Descrição","Fornecedor","Parcela","Categoria","Valor"].map(h=>(
-                <th key={h} style={{padding:"9px 12px",textAlign:"left",color:C.muted,fontWeight:600,fontSize:10,textTransform:"uppercase",letterSpacing:"0.04em",borderBottom:`1px solid ${C.border}`}}>{h}</th>
+                <th key={h} style={{padding:"10px 12px",textAlign:"left",color:C.muted,fontWeight:600,fontSize:10,textTransform:"uppercase",letterSpacing:"0.06em",borderBottom:`1px solid ${C.border}`}}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {preview.transactions.map((t,i)=>(
               <tr key={i} style={{borderBottom:`1px solid ${C.border}22`,background:i%2===0?"transparent":C.surface+"55"}}>
-                <td style={{padding:"8px 12px",color:C.muted,fontFamily:"monospace",fontSize:11}}>{fmtD(t.date)}</td>
-                <td style={{padding:"8px 12px",color:C.text}}>{t.description}</td>
-                <td style={{padding:"8px 12px",color:C.muted,fontSize:11}}>{t.supplier||"—"}</td>
-                <td style={{padding:"8px 12px"}}>
+                <td style={{padding:"9px 12px",color:C.muted,fontFamily:"'Space Mono',monospace",fontSize:11}}>{fmtD(t.date)}</td>
+                <td style={{padding:"9px 12px",color:C.text}}>{t.description}</td>
+                <td style={{padding:"9px 12px",color:C.muted,fontSize:11}}>{t.supplier||"—"}</td>
+                <td style={{padding:"9px 12px"}}>
                   {t.installment_current?<span style={{...pill(C.purple),fontSize:10}}>{t.installment_current}/{t.installment_total}</span>:<span style={{color:C.faint}}>À vista</span>}
                 </td>
-                <td style={{padding:"8px 12px"}}><span style={{...pill(C.accent),fontSize:10}}>{t.category_guess||"—"}</span></td>
-                <td style={{padding:"8px 12px",fontFamily:"monospace",fontWeight:700,color:C.red}}>{fmt(t.amount)}</td>
+                <td style={{padding:"9px 12px"}}><span style={{...pill(C.accent),fontSize:10}}>{t.category_guess||"—"}</span></td>
+                <td style={{padding:"9px 12px",fontFamily:"'Space Mono',monospace",fontWeight:700,color:C.red}}>{fmt(t.amount)}</td>
               </tr>
             ))}
           </tbody>
@@ -852,13 +897,16 @@ function ImportTab({api}) {
 
   if(step==="done"&&result) return (
     <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:360}}>
-      <div style={{...card({background:C.surface,width:380,textAlign:"center"})}}>
-        <div style={{width:54,height:54,borderRadius:"50%",background:C.greenSft,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",border:`2px solid ${C.green}`}}>
-          <CheckCircle2 size={26} color={C.green}/>
+      <div style={{...card({background:C.surface,width:400,textAlign:"center",
+        boxShadow:"0 0 0 1px rgba(16,185,129,0.1), 0 32px 72px rgba(0,0,0,0.5)"})}}>
+        <div style={{width:60,height:60,borderRadius:"50%",background:C.greenSft,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 18px",border:`2px solid ${C.green}44`,boxShadow:`0 0 20px ${C.green}22`}}>
+          <CheckCircle2 size={28} color={C.green}/>
         </div>
-        <h3 style={{color:C.text,fontSize:16,fontWeight:700,margin:"0 0 8px"}}>Importação Concluída!</h3>
-        <p style={{color:C.muted,fontSize:13,margin:"0 0 6px"}}><strong style={{color:C.green}}>{result.imported} transações</strong> importadas — banco <strong style={{color:C.accent}}>{result.bank}</strong></p>
-        <button onClick={()=>{setStep("upload");setPreview(null);setFile(null);setResult(null);}} style={{marginTop:20,padding:"10px 22px",borderRadius:8,border:"none",background:C.accent,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer"}}>
+        <h3 style={{color:C.text,fontSize:17,fontWeight:700,margin:"0 0 10px",letterSpacing:"-0.01em"}}>Importação Concluída!</h3>
+        <p style={{color:C.muted,fontSize:13,margin:"0 0 6px"}}>
+          <strong style={{color:C.green}}>{result.imported} transaç{result.imported===1?"ão":"ões"}</strong> importadas do banco <strong style={{color:C.accent}}>{result.bank}</strong>
+        </p>
+        <button onClick={()=>{setStep("upload");setPreview(null);setFile(null);setResult(null);}} style={{...btn(C.accent,{marginTop:22,padding:"10px 24px",boxShadow:"0 4px 14px rgba(37,99,235,0.35)"})}}>
           Importar Outra Fatura
         </button>
       </div>
@@ -867,30 +915,33 @@ function ImportTab({api}) {
 
   return (
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{marginBottom:22}}>
-        <h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>Importar Fatura PDF</h2>
-        <p style={{color:C.muted,fontSize:13,margin:"4px 0 0"}}>Suporte a: Itaú, Santander, Bradesco, Caixa, Sam's Club, Sicredi, Riachuelo</p>
+      <div style={{marginBottom:24}}>
+        <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Importar Fatura PDF</h2>
+        <p style={{color:C.muted,fontSize:13,margin:"5px 0 0"}}>Suporte a: Itaú, Santander, Bradesco, Caixa, Sam's Club, Sicredi, Riachuelo</p>
       </div>
 
       <div onDragOver={e=>{e.preventDefault();}} onDrop={e=>{e.preventDefault();handleFile(e.dataTransfer.files[0]);}}
         onClick={()=>document.getElementById("pdfInput").click()}
-        style={{border:`2px dashed ${C.border}`,borderRadius:12,padding:"48px 24px",textAlign:"center",marginBottom:20,cursor:"pointer"}}
-        onMouseEnter={e=>e.currentTarget.style.borderColor=C.accent}
-        onMouseLeave={e=>e.currentTarget.style.borderColor=C.border}>
-        <Upload size={28} color={C.accent} style={{marginBottom:14}}/>
-        <p style={{color:C.text,fontSize:14,fontWeight:600,margin:"0 0 6px"}}>Arraste o PDF da fatura aqui</p>
+        style={{border:`2px dashed ${C.border}`,borderRadius:14,padding:"52px 24px",textAlign:"center",marginBottom:20,cursor:"pointer",
+          transition:"border-color 0.2s ease, background 0.2s ease"}}
+        onMouseEnter={e=>{e.currentTarget.style.borderColor=C.accent;e.currentTarget.style.background=C.accentSft+"55";}}
+        onMouseLeave={e=>{e.currentTarget.style.borderColor=C.border;e.currentTarget.style.background="transparent";}}>
+        <div style={{width:54,height:54,borderRadius:16,background:C.accentSft,display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px",border:`1px solid rgba(37,99,235,0.2)`}}>
+          <Upload size={22} color={C.accent}/>
+        </div>
+        <p style={{color:C.text,fontSize:15,fontWeight:600,margin:"0 0 7px"}}>Arraste o PDF da fatura aqui</p>
         <p style={{color:C.muted,fontSize:13,margin:0}}>ou clique para selecionar · máximo 25 MB</p>
         <input id="pdfInput" type="file" accept=".pdf" style={{display:"none"}} onChange={e=>handleFile(e.target.files[0])}/>
       </div>
 
-      {err&&<ErrMsg msg={err}/>}
+      {err&&<div style={{marginBottom:14}}><ErrMsg msg={err}/></div>}
 
       <div style={{...card()}}>
-        <p style={{fontSize:13,fontWeight:600,color:C.text,margin:"0 0 12px"}}>Bancos suportados:</p>
+        <p style={{fontSize:13,fontWeight:600,color:C.text,margin:"0 0 14px"}}>Bancos suportados:</p>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           {BANKS.map(b=>(
-            <span key={b} style={{...pill(C.accent),fontSize:11,padding:"4px 12px"}}>
-              <Building2 size={10}/>{b}
+            <span key={b} style={{...pill(C.accent),fontSize:11,padding:"5px 13px"}}>
+              <Building2 size={11}/>{b}
             </span>
           ))}
         </div>
@@ -926,42 +977,47 @@ function CardsTab({api}) {
 
   return (
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{marginBottom:18,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div>
-          <h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>Cartões</h2>
-          <p style={{color:C.muted,fontSize:13,margin:"3px 0 0"}}>Gerencie seus cartões de crédito e débito</p>
+          <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Cartões</h2>
+          <p style={{color:C.muted,fontSize:13,margin:"4px 0 0"}}>Gerencie seus cartões de crédito e débito</p>
         </div>
-        <button onClick={()=>setModal(true)} style={{display:"flex",alignItems:"center",gap:6,padding:"9px 16px",borderRadius:8,border:"none",cursor:"pointer",background:C.accent,color:"#fff",fontSize:13,fontWeight:600}}>
-          <Plus size={14}/>Novo Cartão
+        <button onClick={()=>setModal(true)} style={{...btn(C.accent,{boxShadow:"0 4px 14px rgba(37,99,235,0.35)"})}}>
+          <Plus size={15}/>Novo Cartão
         </button>
       </div>
 
-      {err&&<ErrMsg msg={err}/>}
+      {err&&<div style={{marginBottom:12}}><ErrMsg msg={err}/></div>}
       {loading?<Loading/>:(
         <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
           {cards.length===0&&(
-            <div style={{...card({background:C.surface}),flex:1,textAlign:"center",padding:"48px"}}>
-              <CreditCard size={32} color={C.faint} style={{marginBottom:12}}/>
-              <p style={{color:C.muted,margin:0}}>Nenhum cartão cadastrado. Adicione um para vincular às despesas.</p>
+            <div style={{...card({background:C.surface}),flex:1,textAlign:"center",padding:"56px"}}>
+              <div style={{width:54,height:54,borderRadius:16,background:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
+                <CreditCard size={22} color={C.faint}/>
+              </div>
+              <p style={{color:C.muted,margin:0,fontSize:14}}>Nenhum cartão cadastrado. Adicione um para associar às despesas.</p>
             </div>
           )}
           {cards.map(c=>(
-            <div key={c.id} style={{...card({borderLeft:`4px solid ${c.color}`}),flex:"0 0 280px"}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+            <div key={c.id} style={{...card({borderLeft:`4px solid ${c.color}`}),flex:"0 0 290px",transition:"transform 0.15s ease, box-shadow 0.15s ease"}}
+              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";e.currentTarget.style.boxShadow=`0 8px 24px rgba(0,0,0,0.3)`;}}
+              onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="";}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
                 <div>
-                  <div style={{fontSize:15,fontWeight:700,color:C.text}}>{c.name}</div>
-                  <div style={{fontSize:12,color:C.muted,marginTop:2}}>{c.bank}{c.last_four?` ···· ${c.last_four}`:""}</div>
+                  <div style={{fontSize:15,fontWeight:700,color:C.text,letterSpacing:"-0.01em"}}>{c.name}</div>
+                  <div style={{fontSize:12,color:C.muted,marginTop:3}}>{c.bank}{c.last_four?` ···· ${c.last_four}`:""}</div>
                 </div>
-                <button onClick={()=>remove(c.id)} style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:4}}
-                  onMouseEnter={e=>e.currentTarget.style.color=C.red}
-                  onMouseLeave={e=>e.currentTarget.style.color=C.faint}>
+                <button onClick={()=>remove(c.id)} style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:6,
+                  borderRadius:7,transition:"color 0.15s ease, background 0.15s ease"}}
+                  onMouseEnter={e=>{e.currentTarget.style.color=C.red;e.currentTarget.style.background=C.redSft;}}
+                  onMouseLeave={e=>{e.currentTarget.style.color=C.faint;e.currentTarget.style.background="none";}}>
                   <Trash2 size={14}/>
                 </button>
               </div>
               <div style={{display:"flex",gap:16}}>
-                {c.credit_limit>0&&<div><div style={{fontSize:10,color:C.muted,marginBottom:2}}>LIMITE</div><div style={{fontSize:13,fontWeight:600,color:C.text,fontFamily:"monospace"}}>{fmt(c.credit_limit)}</div></div>}
-                {c.closing_day&&<div><div style={{fontSize:10,color:C.muted,marginBottom:2}}>FECHAMENTO</div><div style={{fontSize:13,fontWeight:600,color:C.text}}>Dia {c.closing_day}</div></div>}
-                {c.due_day&&<div><div style={{fontSize:10,color:C.muted,marginBottom:2}}>VENCIMENTO</div><div style={{fontSize:13,fontWeight:600,color:C.text}}>Dia {c.due_day}</div></div>}
+                {c.credit_limit>0&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Limite</div><div style={{fontSize:13,fontWeight:700,color:C.text,fontFamily:"'Space Mono',monospace"}}>{fmt(c.credit_limit)}</div></div>}
+                {c.closing_day&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Fechamento</div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Dia {c.closing_day}</div></div>}
+                {c.due_day&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Vencimento</div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Dia {c.due_day}</div></div>}
               </div>
             </div>
           ))}
@@ -969,33 +1025,35 @@ function CardsTab({api}) {
       )}
 
       {modal&&(
-        <div onClick={()=>setModal(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.76)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
-          <div onClick={e=>e.stopPropagation()} style={{...card({background:C.surface,boxShadow:"0 32px 72px rgba(0,0,0,.65)"}),width:"100%",maxWidth:440}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
-              <h3 style={{margin:0,fontSize:15,fontWeight:700,color:C.text}}>Novo Cartão</h3>
-              <button onClick={()=>setModal(false)} style={{background:"none",border:"none",cursor:"pointer",color:C.muted}}><X size={17}/></button>
+        <div onClick={()=>setModal(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.78)",
+          display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16,backdropFilter:"blur(4px)"}}>
+          <div onClick={e=>e.stopPropagation()} style={{...card({background:C.surface,
+            boxShadow:"0 0 0 1px rgba(255,255,255,0.04), 0 32px 80px rgba(0,0,0,0.7)"}),width:"100%",maxWidth:440}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+              <h3 style={{margin:0,fontSize:16,fontWeight:700,color:C.text,letterSpacing:"-0.01em"}}>Novo Cartão</h3>
+              <button onClick={()=>setModal(false)} style={{background:C.card,border:`1px solid ${C.border}`,cursor:"pointer",color:C.muted,width:30,height:30,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center"}}><X size={15}/></button>
             </div>
-            {[["Nome do cartão","name","text","Ex: Itaú Mastercard Gold"],["Últimos 4 dígitos","last_four","text","1234"],["Limite (R$)","credit_limit","number","5000"],["Dia fechamento","closing_day","number","25"],["Dia vencimento","due_day","number","5"]].map(([l,k,t,ph])=>(
-              <div key={k} style={{marginBottom:13}}>
-                <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>{l}</label>
+            {[["Nome do cartão","name","text","Ex: Itaú Mastercard Gold"],["Últimos 4 dígitos","last_four","text","1234"],["Limite (R$)","credit_limit","number","5000"],["Dia de fechamento","closing_day","number","25"],["Dia de vencimento","due_day","number","5"]].map(([l,k,t,ph])=>(
+              <div key={k} style={{marginBottom:14}}>
+                <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>{l}</label>
                 <input type={t} placeholder={ph} value={f[k]} onChange={e=>setF({...f,[k]:e.target.value})} style={inpSt(false)}/>
               </div>
             ))}
-            <div style={{display:"flex",gap:12,marginBottom:16}}>
+            <div style={{display:"flex",gap:12,marginBottom:18}}>
               <div style={{flex:1}}>
-                <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Banco</label>
+                <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Banco</label>
                 <select value={f.bank} onChange={e=>setF({...f,bank:e.target.value})} style={{...selSt,width:"100%",padding:"9px 12px"}}>
                   {BANKS_LIST.map(b=><option key={b} value={b}>{b}</option>)}
                 </select>
               </div>
               <div style={{flex:1}}>
-                <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:5,textTransform:"uppercase",letterSpacing:"0.04em"}}>Cor</label>
+                <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Cor do cartão</label>
                 <input type="color" value={f.color} onChange={e=>setF({...f,color:e.target.value})} style={{...inpSt(false),padding:"5px",height:40,cursor:"pointer"}}/>
               </div>
             </div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>setModal(false)} style={{flex:1,padding:"10px",borderRadius:8,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:13,cursor:"pointer"}}>Cancelar</button>
-              <button onClick={save} style={{flex:2,padding:"10px",borderRadius:8,border:"none",background:C.accent,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer"}}>Salvar Cartão</button>
+              <button onClick={()=>setModal(false)} style={{flex:1,padding:"11px",borderRadius:8,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:13,cursor:"pointer"}}>Cancelar</button>
+              <button onClick={save} style={{...btn(C.accent,{flex:2,padding:"11px",boxShadow:"0 4px 14px rgba(37,99,235,0.35)"})}}>Salvar Cartão</button>
             </div>
           </div>
         </div>
@@ -1018,25 +1076,26 @@ function CategoriesTab({api}) {
   if(loading) return <Loading/>;
   return (
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:"0 0 6px"}}>Categorias IFRS</h2>
-      <p style={{color:C.muted,fontSize:13,margin:"0 0 20px"}}>Classificação baseada nas Normas Internacionais de Contabilidade</p>
+      <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:"0 0 6px",letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Categorias IFRS</h2>
+      <p style={{color:C.muted,fontSize:13,margin:"0 0 22px"}}>Classificação baseada nas Normas Internacionais de Contabilidade</p>
       {IFRS_GROUPS.map(g=>{
         const gc=cats.filter(c=>c.ifrs_group===g);
         const gColor={Custos:C.accent,Despesas:C.purple,Financeiras:C.red,Invest:C.green}[g.split(" ")[0]]||C.accent;
         return (
           <div key={g} style={{...card(),marginBottom:12}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:12,paddingBottom:10,borderBottom:`1px solid ${C.border}`}}>
-              <div style={{width:10,height:10,borderRadius:2,background:gColor}}/>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:14,paddingBottom:12,borderBottom:`1px solid ${C.border}`}}>
+              <div style={{width:10,height:10,borderRadius:3,background:gColor,boxShadow:`0 0 8px ${gColor}44`}}/>
               <span style={{fontSize:13,fontWeight:700,color:C.text}}>{g}</span>
-              <span style={{...pill(gColor),fontSize:10}}>{gc.length} categorias</span>
+              <span style={{...pill(gColor),fontSize:10}}>{gc.length} categori{gc.length===1?"a":"as"}</span>
             </div>
             <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
               {gc.map(c=>(
                 <div key={c.id} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",
-                  background:C.surface,borderRadius:7,border:`1px solid ${C.border}`,borderLeft:`3px solid ${c.color}`}}>
+                  background:C.surface,borderRadius:8,border:`1px solid ${C.border}`,borderLeft:`3px solid ${c.color}`,
+                  transition:"border-color 0.15s ease"}}>
                   <span style={{fontSize:16}}>{c.icon}</span>
                   <span style={{fontSize:13,color:C.text,fontWeight:500}}>{c.name}</span>
-                  <button onClick={()=>remove(c.id)} style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:2}}
+                  <button onClick={()=>remove(c.id)} style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:2,display:"flex",borderRadius:4,transition:"color 0.15s ease"}}
                     onMouseEnter={e=>e.currentTarget.style.color=C.red}
                     onMouseLeave={e=>e.currentTarget.style.color=C.faint}>
                     <X size={11}/>
@@ -1078,24 +1137,24 @@ function ReportsTab({api}) {
 
   return (
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{marginBottom:18,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div>
-          <h2 style={{fontSize:20,fontWeight:700,color:C.text,margin:0}}>Relatórios Comparativos</h2>
-          <p style={{color:C.muted,fontSize:13,margin:"3px 0 0"}}>Período atual vs anterior</p>
+          <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Relatórios Comparativos</h2>
+          <p style={{color:C.muted,fontSize:13,margin:"4px 0 0"}}>Período atual versus período anterior</p>
         </div>
         <input type="month" value={periodo} onChange={e=>setPeriodo(e.target.value)} style={{...selSt,padding:"8px 12px"}}/>
       </div>
 
-      <div style={{display:"flex",gap:10,marginBottom:18,flexWrap:"wrap"}}>
+      <div style={{display:"flex",gap:10,marginBottom:20,flexWrap:"wrap"}}>
         {[
           ["Receitas (Atual)",   fmt(data.current.total_receitas), C.green],
           ["Despesas (Atual)",   fmt(data.current.total_despesas), C.red],
           ["Saldo (Atual)",      fmt(data.current.saldo),          data.current.saldo>=0?C.green:C.red],
-          ["Variação Despesas",  `${data.variation_pct>0?"+":""}${data.variation_pct.toFixed(1)}%`, data.variation_pct<=0?C.green:C.red],
+          ["Variação nas Despesas",  `${data.variation_pct>0?"+":""}${data.variation_pct.toFixed(1)}%`, data.variation_pct<=0?C.green:C.red],
         ].map(([l,v,c])=>(
-          <div key={l} style={{...card(),flex:1,minWidth:140}}>
-            <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:6}}>{l}</div>
-            <div style={{fontSize:17,fontWeight:700,color:c,fontFamily:"monospace"}}>{v}</div>
+          <div key={l} style={{...card(),flex:1,minWidth:140,boxShadow:`inset 0 2px 0 0 ${c}33`}}>
+            <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:7}}>{l}</div>
+            <div style={{fontSize:17,fontWeight:700,color:c,fontFamily:"'Space Mono',monospace"}}>{v}</div>
           </div>
         ))}
       </div>
@@ -1103,13 +1162,13 @@ function ReportsTab({api}) {
       {compareData.length>0 ? (
         <>
           <div style={{...card(),marginBottom:12}}>
-            <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:14}}>Despesas: Mês Atual vs Anterior (R$)</div>
+            <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:16}}>Despesas: Mês Atual vs. Mês Anterior (R$)</div>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={compareData} margin={{top:0,right:0,left:-10,bottom:0}}>
-                <CartesianGrid strokeDasharray="3 3" stroke={C.border}/>
+                <CartesianGrid strokeDasharray="3 3" stroke={C.border} strokeOpacity={0.6}/>
                 <XAxis dataKey="cat" tick={{fill:C.muted,fontSize:10}}/>
                 <YAxis tick={{fill:C.muted,fontSize:10}} tickFormatter={v=>fmt(v)}/>
-                <Tooltip contentStyle={{background:C.cardB,border:`1px solid ${C.border}`,borderRadius:8,fontSize:12}} formatter={v=>fmt(v)}/>
+                <Tooltip contentStyle={{background:C.cardB,border:`1px solid ${C.border}`,borderRadius:9,fontSize:12,boxShadow:"0 8px 24px rgba(0,0,0,0.4)"}} formatter={v=>fmt(v)}/>
                 <Legend formatter={v=><span style={{color:C.muted,fontSize:11}}>{v}</span>}/>
                 <Bar dataKey="anterior" name="Mês Anterior" fill={C.faint} radius={[4,4,0,0]}/>
                 <Bar dataKey="atual"    name="Mês Atual"    fill={C.accent} radius={[4,4,0,0]}/>
@@ -1122,20 +1181,20 @@ function ReportsTab({api}) {
               <thead>
                 <tr style={{background:C.surface}}>
                   {["Categoria","Mês Anterior","Mês Atual","Variação","Tendência"].map(h=>(
-                    <th key={h} style={{padding:"9px 14px",textAlign:"left",color:C.muted,fontWeight:600,fontSize:10,textTransform:"uppercase",letterSpacing:"0.04em",borderBottom:`1px solid ${C.border}`}}>{h}</th>
+                    <th key={h} style={{padding:"10px 14px",textAlign:"left",color:C.muted,fontWeight:600,fontSize:10,textTransform:"uppercase",letterSpacing:"0.06em",borderBottom:`1px solid ${C.border}`}}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {compareData.map((r,i)=>(
                   <tr key={r.cat} style={{borderBottom:`1px solid ${C.border}22`,background:i%2===0?"transparent":C.surface+"55"}}>
-                    <td style={{padding:"8px 14px",color:C.text,fontWeight:500}}>{r.cat}</td>
-                    <td style={{padding:"8px 14px",fontFamily:"monospace",color:C.muted}}>{fmt(r.anterior)}</td>
-                    <td style={{padding:"8px 14px",fontFamily:"monospace",fontWeight:600,color:C.text}}>{fmt(r.atual)}</td>
-                    <td style={{padding:"8px 14px",fontFamily:"monospace",fontWeight:700,color:r.diff>0?C.red:r.diff<0?C.green:C.muted}}>
+                    <td style={{padding:"9px 14px",color:C.text,fontWeight:500}}>{r.cat}</td>
+                    <td style={{padding:"9px 14px",fontFamily:"'Space Mono',monospace",color:C.muted}}>{fmt(r.anterior)}</td>
+                    <td style={{padding:"9px 14px",fontFamily:"'Space Mono',monospace",fontWeight:600,color:C.text}}>{fmt(r.atual)}</td>
+                    <td style={{padding:"9px 14px",fontFamily:"'Space Mono',monospace",fontWeight:700,color:r.diff>0?C.red:r.diff<0?C.green:C.muted}}>
                       {r.diff>0?"+":""}{r.diff.toFixed(1)}%
                     </td>
-                    <td style={{padding:"8px 14px"}}>
+                    <td style={{padding:"9px 14px"}}>
                       {r.diff>10?<span style={{...pill(C.red),fontSize:10}}><TrendingUp size={9}/>Alta</span>:
                        r.diff<-10?<span style={{...pill(C.green),fontSize:10}}><TrendingDown size={9}/>Queda</span>:
                        <span style={{...pill(C.gold),fontSize:10}}>Estável</span>}
@@ -1147,9 +1206,11 @@ function ReportsTab({api}) {
           </div>
         </>
       ) : (
-        <div style={{...card({background:C.surface}),textAlign:"center",padding:"48px"}}>
-          <BarChart2 size={32} color={C.faint} style={{marginBottom:12}}/>
-          <p style={{color:C.muted,margin:0}}>Sem dados suficientes para comparativo. Cadastre lançamentos nos dois períodos.</p>
+        <div style={{...card({background:C.surface}),textAlign:"center",padding:"56px"}}>
+          <div style={{width:54,height:54,borderRadius:16,background:C.border+"44",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 16px"}}>
+            <BarChart2 size={22} color={C.faint}/>
+          </div>
+          <p style={{color:C.muted,margin:0,fontSize:14}}>Sem dados suficientes para comparação. Cadastre lançamentos nos dois períodos.</p>
         </div>
       )}
     </div>
@@ -1165,7 +1226,7 @@ export default function App() {
 
   useEffect(()=>{
     const l=document.createElement("link");
-    l.href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap";
+    l.href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap";
     l.rel="stylesheet"; document.head.appendChild(l);
   },[]);
 
@@ -1183,9 +1244,9 @@ export default function App() {
   if(!user) return <LoginPage onLogin={handleAuth}/>;
 
   return (
-    <div style={{display:"flex",flexDirection:isMobile?"column":"row",height:"100vh",background:C.bg,color:C.text,overflow:"hidden",fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
+    <div style={{display:"flex",flexDirection:isMobile?"column":"row",height:"100vh",background:`radial-gradient(ellipse 120% 80% at 80% 120%, rgba(155,35,53,0.06) 0%, ${C.bg} 50%)`,color:C.text,overflow:"hidden",fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
       {!isMobile && <Sidebar active={tab} set={setTab} user={user} onLogout={logout}/>}
-      <main style={{flex:1,overflowY:"auto",padding:isMobile?"16px 12px 80px":"24px 22px"}}>
+      <main style={{flex:1,overflowY:"auto",padding:isMobile?"16px 12px 84px":"24px 24px"}}>
         {tab==="dashboard"    && <DashboardTab    api={api}/>}
         {tab==="transactions" && <TransactionsTab api={api}/>}
         {tab==="import"       && <ImportTab       api={api}/>}
@@ -1194,7 +1255,18 @@ export default function App() {
         {tab==="reports"      && <ReportsTab      api={api}/>}
       </main>
       {isMobile && <Sidebar active={tab} set={setTab} user={user} onLogout={logout}/>}
-      <style>{`*{box-sizing:border-box}::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:${C.surface}}::-webkit-scrollbar-thumb{background:${C.border};border-radius:3px}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        *{box-sizing:border-box}
+        button:focus-visible{outline:2px solid ${C.accent};outline-offset:2px}
+        input:focus{border-color:${C.accent}!important;box-shadow:0 0 0 3px rgba(155,35,53,0.14)}
+        select:focus{outline:2px solid ${C.accent};outline-offset:1px}
+        ::-webkit-scrollbar{width:5px}
+        ::-webkit-scrollbar-track{background:${C.surface}}
+        ::-webkit-scrollbar-thumb{background:${C.borderL};border-radius:3px}
+        ::-webkit-scrollbar-thumb:hover{background:${C.faint}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+      `}</style>
     </div>
   );
 }
