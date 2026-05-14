@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { UserCog, Shield, BarChart2, TrendingUp, Eye, EyeOff, RefreshCw, CheckCircle2 } from "lucide-react";
+import { UserCog, Shield, BarChart2, TrendingUp, Eye, EyeOff, RefreshCw, CheckCircle2, Trash2 } from "lucide-react";
 import { C, card } from "../../styles/theme";
 
 export default function ManageUsersTab({ api }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null);
+  const [confirmDel, setConfirmDel] = useState(null);
   const [flash, setFlash] = useState(null);
 
   const load = async () => {
@@ -26,6 +27,19 @@ export default function ManageUsersTab({ api }) {
       const updated = await api(`/users/${userId}`, { method: "PATCH", body: JSON.stringify(payload) });
       setUsers(prev => prev.map(u => u.id === userId ? updated : u));
       setFlash({ type: "ok", msg: "Permissões atualizadas" });
+      setTimeout(() => setFlash(null), 2500);
+    } catch (e) {
+      setFlash({ type: "error", msg: e.message });
+    } finally { setSaving(null); }
+  };
+
+  const deleteUser = async (userId) => {
+    setSaving(userId);
+    try {
+      await api(`/users/${userId}`, { method: "DELETE" });
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      setConfirmDel(null);
+      setFlash({ type: "ok", msg: "Usuário excluído" });
       setTimeout(() => setFlash(null), 2500);
     } catch (e) {
       setFlash({ type: "error", msg: e.message });
@@ -154,6 +168,31 @@ export default function ManageUsersTab({ api }) {
                       color: u.is_active ? C.muted : C.red }}>
                     {u.is_active ? "Ativo" : "Inativo"}
                   </button>
+
+                  {/* Delete */}
+                  {confirmDel === u.id ? (
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <button onClick={() => deleteUser(u.id)} disabled={isBusy}
+                        style={{ fontSize: 10, padding: "4px 8px", borderRadius: 6, cursor: "pointer",
+                          border: "none", background: C.red, color: "#fff", fontWeight: 700 }}>
+                        Excluir
+                      </button>
+                      <button onClick={() => setConfirmDel(null)}
+                        style={{ fontSize: 10, padding: "4px 8px", borderRadius: 6, cursor: "pointer",
+                          border: `1px solid ${C.border}`, background: "transparent", color: C.muted }}>
+                        Não
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setConfirmDel(u.id)} disabled={isBusy}
+                      title="Excluir usuário"
+                      style={{ background: "none", border: "none", cursor: "pointer", color: C.faint,
+                        padding: 4, borderRadius: 5, display: "flex", transition: "color 0.15s" }}
+                      onMouseEnter={e => e.currentTarget.style.color = C.red}
+                      onMouseLeave={e => e.currentTarget.style.color = C.faint}>
+                      <Trash2 size={14} />
+                    </button>
+                  )}
                 </div>
               </div>
             );
