@@ -75,8 +75,10 @@ if STATIC_DIR.exists():
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str, response: Response):
         """Serve React SPA — any non-API route returns index.html"""
-        if full_path.startswith("api/") or full_path == "api":
-            return {"detail": "Not Found"}
+        # Never intercept API routes
+        if full_path.startswith("api"):
+            from fastapi import HTTPException
+            raise HTTPException(status_code=404, detail="Not Found")
         file_path = STATIC_DIR / full_path
         if file_path.exists() and file_path.is_file():
             return FileResponse(str(file_path))
