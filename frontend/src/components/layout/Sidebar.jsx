@@ -1,18 +1,22 @@
 import { useState, useEffect } from "react";
-import { LayoutDashboard, CreditCard, Upload, Tag, BarChart2, LogOut, Users } from "lucide-react";
+import { LayoutDashboard, CreditCard, Upload, Tag, BarChart2, LogOut, Users, UserCog } from "lucide-react";
 import { C } from "../../styles/theme";
 import RotasCafeLogo from "../logos/RotasCafeLogo";
 import WindingRoad from "../logos/WindingRoad";
 
 export default function Sidebar({active, set, user, onLogout}) {
+  const isAdmin = user?.role === "admin";
+  const canReports = isAdmin || user?.can_view_reports;
+
   const nav = [
     {id:"dashboard",    icon:LayoutDashboard, label:"Dashboard"},
     {id:"transactions", icon:CreditCard,      label:"Lançamentos"},
     {id:"import",       icon:Upload,          label:"Importar"},
     {id:"cards",        icon:CreditCard,      label:"Cartões"},
     {id:"categories",   icon:Tag,             label:"Categorias"},
-    {id:"reports",      icon:BarChart2,       label:"Relatórios"},
-    ...(user?.role === "admin" ? [{id:"employees", icon:Users, label:"Funcionários"}] : []),
+    ...(canReports ? [{id:"reports", icon:BarChart2, label:"Relatórios"}] : []),
+    ...(isAdmin ? [{id:"employees", icon:Users, label:"Funcionários"}] : []),
+    ...(isAdmin ? [{id:"manage-users", icon:UserCog, label:"Usuários"}] : []),
   ];
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);

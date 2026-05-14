@@ -12,6 +12,7 @@ class User(Base):
     hashed_password = Column(String(256), nullable=False)
     is_active       = Column(Boolean, default=True)
     role            = Column(String(20), default="admin")  # admin | user
+    can_view_reports = Column(Boolean, default=False)
     created_at      = Column(DateTime, server_default=func.now())
 
     transactions    = relationship("Transaction", back_populates="user", cascade="all, delete")

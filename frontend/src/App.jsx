@@ -10,6 +10,7 @@ import CardsTab from "./components/cards/CardsTab";
 import CategoriesTab from "./components/categories/CategoriesTab";
 import ReportsTab from "./components/reports/ReportsTab";
 import EmployeesTab from "./components/employees/EmployeesTab";
+import ManageUsersTab from "./components/users/ManageUsersTab";
 
 export default function App() {
   const { user, login, register, logout, api } = useAuth();
@@ -56,6 +57,7 @@ export default function App() {
         {tab === "categories"   && <CategoriesTab   api={api} />}
         {tab === "reports"      && <ReportsTab      api={api} />}
         {tab === "employees"    && <EmployeesTab    api={api} />}
+        {tab === "manage-users" && <ManageUsersTab  api={api} />}
       </main>
 
       {isMobile && <Sidebar active={tab} set={setTab} user={user} onLogout={logout} />}

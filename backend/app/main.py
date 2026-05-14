@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 
 from app.database import engine, Base
-from app.routers import auth, transactions, categories, cards, invoices, reports, employees
+from app.routers import auth, transactions, categories, cards, invoices, reports, employees, users
 
 
 @asynccontextmanager
@@ -28,9 +28,14 @@ def _auto_migrate():
                 cols = {row[1] for row in result.fetchall()}
                 if "role" not in cols:
                     conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'admin'"))
+                if "can_view_reports" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN can_view_reports BOOLEAN DEFAULT 0"))
             else:
                 conn.execute(text(
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'admin'"
+                ))
+                conn.execute(text(
+                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS can_view_reports BOOLEAN DEFAULT FALSE"
                 ))
     except Exception:
         pass
@@ -58,6 +63,7 @@ app.include_router(cards.router,        prefix="/api/cards",         tags=["Cart
 app.include_router(invoices.router,     prefix="/api/invoices",      tags=["Faturas PDF"])
 app.include_router(reports.router,      prefix="/api/reports",       tags=["Relatórios"])
 app.include_router(employees.router,    prefix="/api/employees",     tags=["Funcionários"])
+app.include_router(users.router,        prefix="/api/users",         tags=["Usuários"])
 
 
 @app.get("/api/health")
