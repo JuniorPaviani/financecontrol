@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { UserCog, Shield, BarChart2, Eye, EyeOff, RefreshCw, CheckCircle2 } from "lucide-react";
+import { UserCog, Shield, BarChart2, TrendingUp, Eye, EyeOff, RefreshCw, CheckCircle2 } from "lucide-react";
 import { C, card } from "../../styles/theme";
 
 export default function ManageUsersTab({ api }) {
@@ -110,20 +110,34 @@ export default function ManageUsersTab({ api }) {
                     <option value="user">Usuário</option>
                   </select>
 
-                  {/* Reports toggle — only for regular users */}
+                  {/* Toggles — only for regular users */}
                   {u.role !== "admin" && (
-                    <button
-                      disabled={isBusy}
-                      onClick={() => patch(u.id, { can_view_reports: !u.can_view_reports })}
-                      title={u.can_view_reports ? "Revogar acesso aos Relatórios" : "Permitir acesso aos Relatórios"}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 7,
-                        border: `1px solid ${u.can_view_reports ? "#10B98144" : C.border}`,
-                        background: u.can_view_reports ? "rgba(16,185,129,0.12)" : C.card,
-                        color: u.can_view_reports ? "#10B981" : C.muted,
-                        cursor: "pointer", fontSize: 11, fontWeight: 600, transition: "all 0.2s" }}>
-                      <BarChart2 size={12} />
-                      {u.can_view_reports ? <><Eye size={11} />Relatórios</> : <><EyeOff size={11} />Relatórios</>}
-                    </button>
+                    <>
+                      <button
+                        disabled={isBusy}
+                        onClick={() => patch(u.id, { can_view_receitas: !u.can_view_receitas })}
+                        title={u.can_view_receitas ? "Revogar acesso às Receitas" : "Permitir ver Receitas"}
+                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 7,
+                          border: `1px solid ${u.can_view_receitas ? C.accent + "66" : C.border}`,
+                          background: u.can_view_receitas ? C.accentSft : C.card,
+                          color: u.can_view_receitas ? C.accent : C.muted,
+                          cursor: "pointer", fontSize: 11, fontWeight: 600, transition: "all 0.2s" }}>
+                        <TrendingUp size={12} />
+                        {u.can_view_receitas ? <Eye size={11} /> : <EyeOff size={11} />}Receitas
+                      </button>
+                      <button
+                        disabled={isBusy}
+                        onClick={() => patch(u.id, { can_view_reports: !u.can_view_reports })}
+                        title={u.can_view_reports ? "Revogar acesso aos Relatórios" : "Permitir acesso aos Relatórios"}
+                        style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 7,
+                          border: `1px solid ${u.can_view_reports ? "#10B98144" : C.border}`,
+                          background: u.can_view_reports ? "rgba(16,185,129,0.12)" : C.card,
+                          color: u.can_view_reports ? "#10B981" : C.muted,
+                          cursor: "pointer", fontSize: 11, fontWeight: 600, transition: "all 0.2s" }}>
+                        <BarChart2 size={12} />
+                        {u.can_view_reports ? <Eye size={11} /> : <EyeOff size={11} />}Relatórios
+                      </button>
+                    </>
                   )}
 
                   {u.role === "admin" && (

@@ -51,7 +51,7 @@ export default function App() {
 
       <main style={{ flex: 1, overflowY: "auto", padding: isMobile ? "16px 12px 84px" : "24px 24px" }}>
         {tab === "dashboard"    && <DashboardTab    api={api} />}
-        {tab === "transactions" && <TransactionsTab api={api} />}
+        {tab === "transactions" && <TransactionsTab api={api} user={user} />}
         {tab === "import"       && <ImportTab       api={api} />}
         {tab === "cards"        && <CardsTab        api={api} />}
         {tab === "categories"   && <CategoriesTab   api={api} />}

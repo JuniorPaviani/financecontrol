@@ -30,12 +30,17 @@ def _auto_migrate():
                     conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'admin'"))
                 if "can_view_reports" not in cols:
                     conn.execute(text("ALTER TABLE users ADD COLUMN can_view_reports BOOLEAN DEFAULT 0"))
+                if "can_view_receitas" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN can_view_receitas BOOLEAN DEFAULT 0"))
             else:
                 conn.execute(text(
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'admin'"
                 ))
                 conn.execute(text(
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS can_view_reports BOOLEAN DEFAULT FALSE"
+                ))
+                conn.execute(text(
+                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS can_view_receitas BOOLEAN DEFAULT FALSE"
                 ))
     except Exception:
         pass

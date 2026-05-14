@@ -22,12 +22,14 @@ class UserOut(BaseModel):
     is_active: bool
     role: str = "admin"
     can_view_reports: bool = False
+    can_view_receitas: bool = False
     model_config = {"from_attributes": True}
 
 
 class UserPermissionUpdate(BaseModel):
     role: Optional[str] = None
     can_view_reports: Optional[bool] = None
+    can_view_receitas: Optional[bool] = None
     is_active: Optional[bool] = None
 
 

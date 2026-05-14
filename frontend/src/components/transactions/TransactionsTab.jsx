@@ -6,7 +6,7 @@ import ErrMsg from "../shared/ErrMsg";
 
 const EMPTY = {date:"",desc:"",supplier:"",amount:"",type:"D",cat_id:"",card_id:"",inst:"",instTotal:""};
 
-function TxModal({onClose, onSaved, api, categories, cards}) {
+function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
   const [f,    setF]    = useState({...EMPTY, date: new Date().toISOString().slice(0,10)});
   const [err,  setErr]  = useState({});
   const [saved,setSaved]= useState(false);
@@ -59,7 +59,7 @@ function TxModal({onClose, onSaved, api, categories, cards}) {
 
         {/* Tipo */}
         <div style={{display:"flex",gap:8,marginBottom:18}}>
-          {[["D","▼  Despesa",C.red],["R","▲  Receita",C.green]].map(([v,l,c])=>(
+          {[["D","▼  Despesa",C.red],["R","▲  Receita",C.green]].filter(([v])=>v==="D"||canReceita).map(([v,l,c])=>(
             <button key={v} onClick={()=>setF({...f,type:v})} style={{flex:1,padding:"11px",borderRadius:9,
               border:`2px solid ${f.type===v?c:C.border}`,background:f.type===v?c+"18":"transparent",
               color:f.type===v?c:C.muted,fontSize:13,fontWeight:700,cursor:"pointer",
@@ -166,7 +166,8 @@ function TxModal({onClose, onSaved, api, categories, cards}) {
   );
 }
 
-export default function TransactionsTab({api}) {
+export default function TransactionsTab({api, user}) {
+  const canReceita = user?.role === "admin" || user?.can_view_receitas;
   const [txList,    setTxList]    = useState([]);
   const [categories,setCategories]= useState([]);
   const [cards,     setCards]     = useState([]);
@@ -214,7 +215,11 @@ export default function TransactionsTab({api}) {
 
       {/* Totais */}
       <div style={{display:"flex",gap:8,marginBottom:12}}>
-        {[["Receitas",rec,C.green],["Despesas",des,C.red],["Saldo",rec-des,rec-des>=0?C.green:C.red]].map(([l,v,c])=>(
+        {[
+          ...(canReceita ? [["Receitas", rec, C.green]] : []),
+          ["Despesas", des, C.red],
+          ...(canReceita ? [["Saldo", rec-des, rec-des>=0?C.green:C.red]] : []),
+        ].map(([l,v,c])=>(
           <div key={l} style={{flex:1,background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:"10px 14px",
             boxShadow:`inset 0 2px 0 0 ${c}22`}}>
             <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:4}}>{l}</div>
@@ -235,7 +240,9 @@ export default function TransactionsTab({api}) {
           {search&&<button onClick={()=>setSearch("")} style={{background:"none",border:"none",cursor:"pointer",color:C.muted,padding:0,display:"flex"}}><X size={11}/></button>}
         </div>
         <select value={fType} onChange={e=>setFType(e.target.value)} style={selSt}>
-          <option value="all">Todos</option><option value="D">Despesas</option><option value="R">Receitas</option>
+          <option value="all">Todos</option>
+          <option value="D">Despesas</option>
+          {canReceita && <option value="R">Receitas</option>}
         </select>
         <span style={{...pill(C.accent),fontSize:10}}><Filter size={9}/>{txList.length}</span>
       </div>
@@ -299,7 +306,7 @@ export default function TransactionsTab({api}) {
         </div>
       )}
 
-      {modal && <TxModal onClose={()=>setModal(false)} onSaved={load} api={api} categories={categories} cards={cards}/>}
+      {modal && <TxModal onClose={()=>setModal(false)} onSaved={load} api={api} categories={categories} cards={cards} canReceita={canReceita}/>}
     </div>
   );
 }

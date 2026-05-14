@@ -25,6 +25,9 @@ def list_transactions(
     current_user: models.User = Depends(auth.get_current_user),
 ):
     q = db.query(models.Transaction).filter(models.Transaction.user_id == current_user.id)
+    can_receita = current_user.role == "admin" or current_user.can_view_receitas
+    if not can_receita:
+        q = q.filter(models.Transaction.type != "R")
     if periodo:
         q = q.filter(models.Transaction.periodo_referencia == periodo)
     if type:
@@ -48,6 +51,8 @@ def create_transaction(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
+    if data.type == "R" and current_user.role != "admin" and not current_user.can_view_receitas:
+        raise HTTPException(status_code=403, detail="Sem permissão para registrar receitas")
     group_id = str(uuid.uuid4()) if data.installment_total and data.installment_total > 1 else None
     created = []
 

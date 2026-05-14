@@ -34,6 +34,8 @@ def update_user_permissions(
         user.role = payload.role
     if payload.can_view_reports is not None:
         user.can_view_reports = payload.can_view_reports
+    if payload.can_view_receitas is not None:
+        user.can_view_receitas = payload.can_view_receitas
     if payload.is_active is not None:
         user.is_active = payload.is_active
     db.commit()
