@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from starlette.types import Scope, Receive, Send
 from contextlib import asynccontextmanager
 
 from app.database import engine, Base
@@ -29,12 +30,11 @@ def _auto_migrate():
                 if "role" not in cols:
                     conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'admin'"))
             else:
-                # PostgreSQL: IF NOT EXISTS é idempotente
                 conn.execute(text(
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'admin'"
                 ))
     except Exception:
-        pass  # Tabela ainda não existe — create_all cuida disso
+        pass
 
 
 app = FastAPI(
@@ -69,24 +69,25 @@ def health():
 # ── Serve frontend static files in production ─────────────────────
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
-if STATIC_DIR.exists():
-    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="assets")
 
-    @app.get("/{full_path:path}")
-    async def serve_spa(full_path: str, response: Response):
-        """Serve React SPA — any non-API route returns index.html"""
-        # Never intercept API routes
-        if full_path.startswith("api"):
-            from fastapi import HTTPException
-            raise HTTPException(status_code=404, detail="Not Found")
-        file_path = STATIC_DIR / full_path
-        if file_path.exists() and file_path.is_file():
-            return FileResponse(str(file_path))
-        return FileResponse(
-            str(STATIC_DIR / "index.html"),
-            headers={
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0",
-            },
-        )
+class SPAStaticFiles(StaticFiles):
+    """StaticFiles que faz fallback para index.html (SPA routing)."""
+    async def get_response(self, path: str, scope):
+        try:
+            return await super().get_response(path, scope)
+        except Exception:
+            return FileResponse(
+                str(self.directory / "index.html"),
+                headers={
+                    "Cache-Control": "no-cache, no-store, must-revalidate",
+                    "Pragma": "no-cache",
+                    "Expires": "0",
+                },
+            )
+
+
+if STATIC_DIR.exists():
+    # /assets → arquivos estáticos do build Vite
+    app.mount("/assets", StaticFiles(directory=str(STATIC_DIR / "assets")), name="assets")
+    # / → SPA com fallback para index.html (montado por último, API tem prioridade)
+    app.mount("/", SPAStaticFiles(directory=str(STATIC_DIR), html=True), name="spa")
