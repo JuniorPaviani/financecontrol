@@ -7,13 +7,27 @@ from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 
 from app.database import engine, Base
-from app.routers import auth, transactions, categories, cards, invoices, reports
+from app.routers import auth, transactions, categories, cards, invoices, reports, employees
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    _auto_migrate()
     yield
+
+
+def _auto_migrate():
+    """Apply incremental schema changes — works on both SQLite and PostgreSQL."""
+    from sqlalchemy import text, inspect as sa_inspect
+    try:
+        inspector = sa_inspect(engine)
+        user_cols = [c["name"] for c in inspector.get_columns("users")]
+        if "role" not in user_cols:
+            with engine.begin() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'admin'"))
+    except Exception:
+        pass  # Table may not exist yet on first run — create_all handles it
 
 
 app = FastAPI(
@@ -37,6 +51,7 @@ app.include_router(categories.router,   prefix="/api/categories",    tags=["Cate
 app.include_router(cards.router,        prefix="/api/cards",         tags=["Cartões"])
 app.include_router(invoices.router,     prefix="/api/invoices",      tags=["Faturas PDF"])
 app.include_router(reports.router,      prefix="/api/reports",       tags=["Relatórios"])
+app.include_router(employees.router,    prefix="/api/employees",     tags=["Funcionários"])
 
 
 @app.get("/api/health")

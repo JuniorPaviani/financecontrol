@@ -3,11 +3,11 @@ from typing import Optional, List
 from datetime import date
 
 
-# ── Auth ──────────────────────────────────────────────────────────────────────
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
+    role: Optional[str] = "admin"
 
 
 class UserLogin(BaseModel):
@@ -20,6 +20,7 @@ class UserOut(BaseModel):
     name: str
     email: str
     is_active: bool
+    role: str = "admin"
     model_config = {"from_attributes": True}
 
 
@@ -29,7 +30,6 @@ class Token(BaseModel):
     user: UserOut
 
 
-# ── Category ──────────────────────────────────────────────────────────────────
 class CategoryCreate(BaseModel):
     name: str
     ifrs_group: str
@@ -42,7 +42,6 @@ class CategoryOut(CategoryCreate):
     model_config = {"from_attributes": True}
 
 
-# ── Card ──────────────────────────────────────────────────────────────────────
 class CardCreate(BaseModel):
     name: str
     bank: str
@@ -59,9 +58,8 @@ class CardOut(CardCreate):
     model_config = {"from_attributes": True}
 
 
-# ── Transaction ───────────────────────────────────────────────────────────────
 class TransactionCreate(BaseModel):
-    type: str                           # D | R
+    type: str
     date: date
     description: str
     supplier: Optional[str] = None
@@ -105,7 +103,6 @@ class TransactionOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
-# ── Reports ───────────────────────────────────────────────────────────────────
 class MonthSummary(BaseModel):
     periodo_referencia: str
     total_receitas: float
@@ -127,7 +124,6 @@ class ComparativeReport(BaseModel):
     by_category: List[CategorySummary]
 
 
-# ── Invoice Import ─────────────────────────────────────────────────────────────
 class ImportedTransaction(BaseModel):
     date: date
     description: str
@@ -144,3 +140,38 @@ class InvoicePreview(BaseModel):
     total_transactions: int
     total_amount: float
     transactions: List[ImportedTransaction]
+
+
+class EmployeeCreate(BaseModel):
+    name: str
+    cpf: Optional[str] = None
+    position: Optional[str] = None
+    department: Optional[str] = None
+    base_salary: Optional[float] = 0.0
+    hire_date: Optional[date] = None
+    status: Optional[str] = "active"
+    notes: Optional[str] = None
+
+
+class EmployeeOut(EmployeeCreate):
+    id: int
+    model_config = {"from_attributes": True}
+
+
+class SalaryPaymentCreate(BaseModel):
+    periodo_referencia: str
+    base_salary: float
+    bonus: Optional[float] = 0.0
+    deductions: Optional[float] = 0.0
+    inss: Optional[float] = 0.0
+    fgts: Optional[float] = 0.0
+    net_salary: float
+    payment_date: Optional[date] = None
+    status: Optional[str] = "pending"
+    notes: Optional[str] = None
+
+
+class SalaryPaymentOut(SalaryPaymentCreate):
+    id: int
+    employee_id: int
+    model_config = {"from_attributes": True}
