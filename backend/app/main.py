@@ -19,15 +19,22 @@ async def lifespan(app: FastAPI):
 
 def _auto_migrate():
     """Apply incremental schema changes — works on both SQLite and PostgreSQL."""
-    from sqlalchemy import text, inspect as sa_inspect
+    from sqlalchemy import text
+    db_url = os.getenv("DATABASE_URL", "sqlite:///./financecontrol.db")
     try:
-        inspector = sa_inspect(engine)
-        user_cols = [c["name"] for c in inspector.get_columns("users")]
-        if "role" not in user_cols:
-            with engine.begin() as conn:
-                conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'admin'"))
+        with engine.begin() as conn:
+            if db_url.startswith("sqlite"):
+                result = conn.execute(text("PRAGMA table_info(users)"))
+                cols = {row[1] for row in result.fetchall()}
+                if "role" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR(20) DEFAULT 'admin'"))
+            else:
+                # PostgreSQL: IF NOT EXISTS é idempotente
+                conn.execute(text(
+                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'admin'"
+                ))
     except Exception:
-        pass  # Table may not exist yet on first run — create_all handles it
+        pass  # Tabela ainda não existe — create_all cuida disso
 
 
 app = FastAPI(
