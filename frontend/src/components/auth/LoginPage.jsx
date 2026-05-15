@@ -130,11 +130,14 @@ export default function LoginPage({onLogin}) {
                   style={inpSt(false)}/>
               </div>
             )}
-            {[["E-mail","email",email,setEmail,"email"],["Senha","password",pass,setPass,"password"]].map(([l,id,v,s,t])=>(
+            {[
+              [mode==="register"?"E-mail":"E-mail ou Login","email",email,setEmail, mode==="register"?"email":"text"],
+              ["Senha","password",pass,setPass,"password"]
+            ].map(([l,id,v,s,t])=>(
               <div key={id} style={{marginBottom:16}}>
                 <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>{l}</label>
                 <input type={t} value={v} onChange={e=>s(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handle()}
-                  placeholder={t==="password"?"••••••••":"seu@email.com"} style={inpSt(false)}/>
+                  placeholder={t==="password"?"••••••••":mode==="register"?"seu@email.com":"seu@email.com ou ADM.LOGIN"} style={inpSt(false)}/>
               </div>
             ))}
             {mode === "login" && (

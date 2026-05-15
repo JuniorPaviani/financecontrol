@@ -75,6 +75,21 @@ def forgot_password(data: schemas.ForgotPassword, db: Session = Depends(get_db))
     return msg
 
 
+@router.post("/change-password")
+def change_password(
+    data: schemas.ChangePasswordRequest,
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db),
+):
+    if len(data.new_password) < 6:
+        raise HTTPException(400, detail="A senha deve ter pelo menos 6 caracteres.")
+    current_user.hashed_password = auth.hash_password(data.new_password)
+    current_user.force_password_change = False
+    db.commit()
+    token = auth.create_token(current_user.id, current_user.email)
+    return {"access_token": token, "token_type": "bearer", "user": current_user}
+
+
 @router.post("/reset-password")
 def reset_password(data: schemas.ResetPassword, db: Session = Depends(get_db)):
     if len(data.new_password) < 6:

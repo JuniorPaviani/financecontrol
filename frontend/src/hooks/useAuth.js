@@ -39,7 +39,14 @@ export function useAuth() {
     localStorage.removeItem("fc_token"); localStorage.removeItem("fc_user");
   };
 
+  const updateUser = (data) => {
+    setToken(data.access_token);
+    setUser(data.user);
+    localStorage.setItem("fc_token", data.access_token);
+    localStorage.setItem("fc_user", JSON.stringify(data.user));
+  };
+
   const api = useCallback((path, opts={}) => apiFetch(path, opts, token), [token]);
 
-  return { token, user, login, register, logout, api };
+  return { token, user, login, register, logout, updateUser, api };
 }
