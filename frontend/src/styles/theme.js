@@ -1,10 +1,10 @@
-/* Paleta derivada da identidade visual do Rotas Café (@rotascafejb) */
+/* Military Green theme — FinanceControl public edition */
 export const C = {
-  bg:"#0D0805",surface:"#140D07",card:"#1C110A",cardB:"#231509",
-  border:"#3D2415",borderL:"#5A3520",accent:"#9B2335",accentSft:"rgba(155,35,53,0.15)",
-  gold:"#C97B3C",goldSft:"rgba(201,123,60,0.14)",green:"#2A9D6E",greenSft:"rgba(42,157,110,0.12)",
-  red:"#DC3545",redSft:"rgba(220,53,69,0.12)",purple:"#8B6DB5",teal:"#C97B3C",
-  text:"#F5E6D3",muted:"#9E826A",faint:"#5A3D28",
+  bg:"#080D06",surface:"#0C1509",card:"#112010",cardB:"#162814",
+  border:"#294020",borderL:"#3A5A2C",accent:"#4B7A28",accentSft:"rgba(75,122,40,0.15)",
+  gold:"#8B8A2A",goldSft:"rgba(139,138,42,0.14)",green:"#2AAD60",greenSft:"rgba(42,173,96,0.12)",
+  red:"#DC3545",redSft:"rgba(220,53,69,0.12)",purple:"#6B8A42",teal:"#3A8A52",
+  text:"#E6F2DC",muted:"#789060",faint:"#3A5428",
 };
 
 export const fmt = n => `R$ ${Number(n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}`;

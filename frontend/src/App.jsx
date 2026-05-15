@@ -46,7 +46,7 @@ export default function App() {
       display: "flex",
       flexDirection: isMobile ? "column" : "row",
       height: "100vh",
-      background: `radial-gradient(ellipse 120% 80% at 80% 120%, rgba(155,35,53,0.06) 0%, ${C.bg} 50%)`,
+      background: `radial-gradient(ellipse 120% 80% at 80% 120%, rgba(75,122,40,0.06) 0%, ${C.bg} 50%)`,
       color: C.text,
       overflow: "hidden",
       fontFamily: "'Outfit','Segoe UI',sans-serif",
@@ -70,7 +70,7 @@ export default function App() {
       <style>{`
         * { box-sizing: border-box; }
         button:focus-visible { outline: 2px solid ${C.accent}; outline-offset: 2px; }
-        input:focus { border-color: ${C.accent} !important; box-shadow: 0 0 0 3px rgba(155,35,53,0.14); }
+        input:focus { border-color: ${C.accent} !important; box-shadow: 0 0 0 3px rgba(75,122,40,0.14); }
         select:focus { outline: 2px solid ${C.accent}; outline-offset: 1px; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: ${C.surface}; }

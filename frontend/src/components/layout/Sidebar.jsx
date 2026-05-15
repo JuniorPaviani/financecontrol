@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { LayoutDashboard, CreditCard, Upload, Tag, BarChart2, LogOut, Users, UserCog, FileText } from "lucide-react";
 import { C } from "../../styles/theme";
-import RotasCafeLogo from "../logos/RotasCafeLogo";
-import WindingRoad from "../logos/WindingRoad";
+import FinanceControlLogo from "../logos/FinanceControlLogo";
 
 export default function Sidebar({active, set, user, onLogout}) {
   const isAdmin = user?.role === "admin";
@@ -58,14 +57,10 @@ export default function Sidebar({active, set, user, onLogout}) {
     <div style={{width:220,height:"100vh",background:C.surface,borderRight:`1px solid ${C.border}`,
       display:"flex",flexDirection:"column",flexShrink:0,fontFamily:"'Outfit','Segoe UI',sans-serif",
       position:"relative",overflow:"hidden"}}>
-      {/* estrada decorativa na sidebar */}
-      <div style={{position:"absolute",bottom:-20,right:-30,pointerEvents:"none"}}>
-        <WindingRoad width={180} height={280} color="#C97B3C" opacity={0.08}/>
-      </div>
       <div style={{padding:"22px 18px 14px",borderBottom:`1px solid ${C.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{filter:`drop-shadow(0 0 6px rgba(155,35,53,0.4))`}}>
-            <RotasCafeLogo size={34}/>
+          <div style={{filter:`drop-shadow(0 0 6px rgba(75,122,40,0.4))`}}>
+            <FinanceControlLogo size={34}/>
           </div>
           <div>
             <div style={{fontSize:13,fontWeight:600,color:C.text,fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</div>
