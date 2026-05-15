@@ -398,6 +398,208 @@ function ComparativoView({ api }) {
   );
 }
 
+// ─── DRE view ─────────────────────────────────────────────────────────────────
+
+function DreView({ api }) {
+  const [month,    setMonth]    = useState(() => new Date().toISOString().slice(0, 7));
+  const [data,     setData]     = useState(null);
+  const [loading,  setLoading]  = useState(false);
+  const [err,      setErr]      = useState("");
+  const [expanded, setExpanded] = useState({});
+
+  useEffect(() => {
+    setLoading(true); setErr("");
+    api(`/reports/dre?periodo=${month}`)
+      .then(d => { setData(d); setExpanded({}); })
+      .catch(e => setErr(e.message))
+      .finally(() => setLoading(false));
+  }, [month]);
+
+  const handleExport = async () => {
+    try {
+      const token = localStorage.getItem("fc_token");
+      const res = await fetch(`${API}/reports/export/dre?periodo=${month}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { setErr("Erro ao gerar Excel"); return; }
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `dre_${month}.xlsx`;
+      a.click();
+    } catch (e) { setErr(e.message); }
+  };
+
+  const SECTIONS = [
+    { key: "s1", subtotal: "LUCRO BRUTO",           groups: ["Custos Operacionais"] },
+    { key: "s2", subtotal: "RESULTADO OPERACIONAL",  groups: ["Despesas Administrativas", "Despesas Fixas", "Despesas Financeiras"] },
+    { key: "s3", subtotal: "RESULTADO DO EXERCÍCIO", groups: ["Investimentos (Ativos)"], final: true },
+  ];
+
+  if (loading) return <Loading />;
+  if (err)     return <ErrMsg msg={err} />;
+
+  const pctStr = (amount) => {
+    if (!data || data.receita_bruta <= 0) return "—";
+    return ((amount / data.receita_bruta) * 100).toFixed(1) + "%";
+  };
+
+  const grupMap = data ? Object.fromEntries(data.grupos.map(g => [g.name, g])) : {};
+  const baseRow = { display: "flex", alignItems: "center", padding: "10px 20px" };
+
+  const ValCol = ({ v, color, size = 14 }) => (
+    <span style={{ width: 158, textAlign: "right", fontFamily: "'Space Mono',monospace",
+      fontWeight: 700, fontSize: size, color, whiteSpace: "nowrap" }}>
+      {fmt(v)}
+    </span>
+  );
+  const PctCol = ({ v, color }) => (
+    <span style={{ width: 72, textAlign: "right", fontSize: 12, fontWeight: 600, color }}>
+      {v}
+    </span>
+  );
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+        <input type="month" value={month} onChange={e => setMonth(e.target.value)}
+          style={{ ...selSt, padding: "8px 12px" }} />
+        <button onClick={handleExport}
+          style={{ ...btn(C.green, { padding: "8px 14px", fontSize: 12, gap: 6 }) }}>
+          <FileSpreadsheet size={13} />Exportar Excel
+        </button>
+      </div>
+
+      {data && (
+        <div style={{ ...card({ padding: 0 }), overflow: "hidden" }}>
+          {/* DRE title bar */}
+          <div style={{ padding: "12px 20px", background: C.surface,
+            borderBottom: `1px solid ${C.border}` }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: C.muted,
+              textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              DRE — Demonstração do Resultado do Exercício · {month}
+            </span>
+          </div>
+
+          {/* Column headers */}
+          <div style={{ ...baseRow, background: C.surface, borderBottom: `1px solid ${C.border}` }}>
+            <span style={{ flex: 1, fontSize: 10, fontWeight: 700, color: C.faint,
+              textTransform: "uppercase", letterSpacing: "0.06em" }}>Descrição</span>
+            <span style={{ width: 158, textAlign: "right", fontSize: 10, fontWeight: 700,
+              color: C.faint, textTransform: "uppercase", letterSpacing: "0.06em" }}>Valor (R$)</span>
+            <span style={{ width: 72, textAlign: "right", fontSize: 10, fontWeight: 700,
+              color: C.faint, textTransform: "uppercase", letterSpacing: "0.06em" }}>% Rec.</span>
+          </div>
+
+          {/* Receita Bruta */}
+          <div style={{ ...baseRow, background: C.green + "12",
+            borderBottom: `1px solid ${C.green}22` }}>
+            <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: C.green }}>
+              (+) RECEITA BRUTA DE VENDAS
+            </span>
+            <ValCol v={data.receita_bruta} color={C.green} />
+            <PctCol v="100,0%" color={C.green} />
+          </div>
+
+          {/* Sections */}
+          {(() => {
+            let running = data.receita_bruta;
+            const elems = [];
+
+            SECTIONS.forEach(sec => {
+              sec.groups.forEach(gName => {
+                const g = grupMap[gName] || { name: gName, total: 0, categories: [] };
+                const isOpen = !!expanded[gName];
+
+                elems.push(
+                  <div key={`gh-${gName}`}
+                    onClick={() => setExpanded(p => ({ ...p, [gName]: !p[gName] }))}
+                    style={{ ...baseRow, cursor: g.categories.length > 0 ? "pointer" : "default",
+                      borderBottom: `1px solid ${C.border}22`,
+                      background: isOpen ? C.red + "0A" : "transparent" }}
+                    onMouseEnter={e => { if (!isOpen && g.categories.length > 0) e.currentTarget.style.background = C.surface + "88"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = isOpen ? C.red + "0A" : "transparent"; }}>
+                    <span style={{ flex: 1, display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: C.red }}>
+                        (-) {g.name}
+                      </span>
+                      {g.categories.length > 0 && (
+                        <span style={{ fontSize: 10, color: C.faint }}>
+                          {isOpen ? "▲" : "▼"} {g.categories.length} cat.
+                        </span>
+                      )}
+                    </span>
+                    <ValCol v={g.total} color={C.red} />
+                    <PctCol v={pctStr(g.total)} color={C.muted} />
+                  </div>
+                );
+
+                if (isOpen) {
+                  [...g.categories].sort((a, b) => b.total - a.total).forEach(cat => {
+                    elems.push(
+                      <div key={`cat-${gName}-${cat.name}`}
+                        style={{ ...baseRow, paddingLeft: 44,
+                          background: C.surface + "55",
+                          borderBottom: `1px solid ${C.border}22` }}>
+                        <span style={{ flex: 1, fontSize: 12, color: C.muted }}>
+                          {cat.icon} {cat.name}
+                        </span>
+                        <span style={{ width: 158, textAlign: "right",
+                          fontFamily: "'Space Mono',monospace", fontSize: 12, color: C.muted }}>
+                          {fmt(cat.total)}
+                        </span>
+                        <PctCol v={pctStr(cat.total)} color={C.faint} />
+                      </div>
+                    );
+                  });
+                }
+
+                running -= g.total;
+              });
+
+              const isFinal   = !!sec.final;
+              const resColor  = running >= 0 ? C.green : C.red;
+              const subColor  = isFinal ? resColor : C.accent;
+
+              elems.push(
+                <div key={`sub-${sec.key}`} style={{
+                  ...baseRow,
+                  borderTop:    `2px solid ${subColor}44`,
+                  borderBottom: `1px solid ${C.border}33`,
+                  marginTop: 2,
+                  background:   isFinal
+                    ? (running >= 0 ? C.green + "10" : C.red + "10")
+                    : C.accent + "0A",
+                }}>
+                  <span style={{ flex: 1, fontSize: isFinal ? 15 : 13, fontWeight: 700,
+                    color: subColor, letterSpacing: "-0.01em" }}>
+                    (=) {sec.subtotal}
+                  </span>
+                  <ValCol v={running} color={subColor} size={isFinal ? 18 : 14} />
+                  <PctCol v={pctStr(running)} color={subColor} />
+                </div>
+              );
+
+              if (!isFinal) elems.push(<div key={`sp-${sec.key}`} style={{ height: 6 }} />);
+            });
+
+            return elems;
+          })()}
+        </div>
+      )}
+
+      {data && data.receita_bruta === 0 && data.total_despesas === 0 && (
+        <div style={{ ...card({ background: C.surface }), textAlign: "center",
+          padding: "48px 24px", marginTop: 16 }}>
+          <p style={{ color: C.muted, margin: 0, fontSize: 14 }}>
+            Nenhum lançamento encontrado para este período.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main tab ─────────────────────────────────────────────────────────────────
 
 export default function ReportsTab({ api }) {
@@ -420,20 +622,24 @@ export default function ReportsTab({ api }) {
           <h2 style={{ fontSize: 21, fontWeight: 700, color: C.text, margin: 0,
             letterSpacing: "-0.02em", fontFamily: "'Lora','Georgia',serif" }}>Relatórios</h2>
           <p style={{ color: C.muted, fontSize: 13, margin: "4px 0 0" }}>
-            {view === "comparativo"
-              ? "Período atual versus período anterior"
-              : "Conciliação detalhada — escolha categorias e exporte para Excel"}
+            {{
+              comparativo: "Período atual versus período anterior",
+              conciliacao: "Conciliação detalhada — escolha categorias e exporte para Excel",
+              dre: "Demonstração do Resultado do Exercício — receitas e despesas por grupo IFRS",
+            }[view]}
           </p>
         </div>
         <div style={{ display: "flex", gap: 4, background: C.card, borderRadius: 9,
           border: `1px solid ${C.border}`, padding: 4 }}>
           {tabBtn("comparativo", "Comparativo")}
           {tabBtn("conciliacao", "Conciliação")}
+          {tabBtn("dre", "DRE")}
         </div>
       </div>
 
       {view === "comparativo" && <ComparativoView api={api} />}
       {view === "conciliacao" && <ConciliacaoView api={api} />}
+      {view === "dre"         && <DreView api={api} />}
     </div>
   );
 }

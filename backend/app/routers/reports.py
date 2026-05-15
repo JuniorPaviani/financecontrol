@@ -187,6 +187,208 @@ def installments_projection(
     ]
 
 
+def _compute_dre_data(periodo: str, user_id: int, db: Session) -> dict:
+    IFRS_ORDER = [
+        "Custos Operacionais",
+        "Despesas Administrativas",
+        "Despesas Fixas",
+        "Despesas Financeiras",
+        "Investimentos (Ativos)",
+    ]
+
+    receita_bruta = round(float(
+        db.query(func.sum(models.Transaction.amount))
+        .filter(
+            models.Transaction.user_id == user_id,
+            models.Transaction.periodo_referencia == periodo,
+            models.Transaction.type == "R",
+        ).scalar() or 0
+    ), 2)
+
+    cat_rows = (
+        db.query(
+            models.Category.name.label("cat_name"),
+            models.Category.ifrs_group,
+            models.Category.icon,
+            models.Category.color,
+            func.sum(models.Transaction.amount).label("total"),
+        )
+        .join(models.Transaction, models.Transaction.category_id == models.Category.id)
+        .filter(
+            models.Transaction.user_id == user_id,
+            models.Transaction.periodo_referencia == periodo,
+            models.Transaction.type == "D",
+        )
+        .group_by(
+            models.Category.name,
+            models.Category.ifrs_group,
+            models.Category.icon,
+            models.Category.color,
+        )
+        .all()
+    )
+
+    uncat = round(float(
+        db.query(func.sum(models.Transaction.amount))
+        .filter(
+            models.Transaction.user_id == user_id,
+            models.Transaction.periodo_referencia == periodo,
+            models.Transaction.type == "D",
+            models.Transaction.category_id.is_(None),
+        ).scalar() or 0
+    ), 2)
+
+    group_map = {g: {"name": g, "total": 0.0, "categories": []} for g in IFRS_ORDER}
+
+    for row in cat_rows:
+        g = row.ifrs_group
+        if g not in group_map:
+            group_map[g] = {"name": g, "total": 0.0, "categories": []}
+        group_map[g]["categories"].append({
+            "name": row.cat_name, "icon": row.icon,
+            "color": row.color, "total": round(float(row.total), 2),
+        })
+        group_map[g]["total"] = round(group_map[g]["total"] + float(row.total), 2)
+
+    if uncat > 0:
+        outros = "Outros"
+        if outros not in group_map:
+            group_map[outros] = {"name": outros, "total": 0.0, "categories": []}
+        group_map[outros]["categories"].append(
+            {"name": "Sem categoria", "icon": "❓", "color": "#888888", "total": uncat}
+        )
+        group_map[outros]["total"] = round(group_map[outros]["total"] + uncat, 2)
+
+    grupos = [group_map[g] for g in IFRS_ORDER]
+    for g, data in group_map.items():
+        if g not in IFRS_ORDER:
+            grupos.append(data)
+
+    total_despesas = round(sum(g["total"] for g in grupos), 2)
+    return {
+        "periodo": periodo,
+        "receita_bruta": receita_bruta,
+        "grupos": grupos,
+        "total_despesas": total_despesas,
+        "resultado": round(receita_bruta - total_despesas, 2),
+    }
+
+
+@router.get("/dre")
+def dre(
+    periodo: str = Query(..., description="YYYY-MM"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    return _compute_dre_data(periodo, current_user.id, db)
+
+
+@router.get("/export/dre")
+def export_dre(
+    periodo: str = Query(..., description="YYYY-MM"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    import datetime
+
+    data = _compute_dre_data(periodo, current_user.id, db)
+    receita = data["receita_bruta"]
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "DRE"
+    ws.column_dimensions["A"].width = 5
+    ws.column_dimensions["B"].width = 44
+    ws.column_dimensions["C"].width = 22
+    ws.column_dimensions["D"].width = 12
+
+    cur = [1]
+
+    def pct(amount):
+        return round(amount / receita * 100, 1) if receita > 0 else 0.0
+
+    STYLES = {
+        "receita":    ("D1FAE5", "065F46", True,  12),
+        "group":      ("FFF5F5", "9B2335", True,  11),
+        "category":   ("F9F9F9", "555555", False, 10),
+        "subtotal":   ("EFF6FF", "1D4ED8", True,  11),
+        "result_pos": ("D1FAE5", "065F46", True,  13),
+        "result_neg": ("FEF2F2", "991B1B", True,  13),
+    }
+
+    def wr(label, amount, pct_val=None, indent=0, style="normal"):
+        r = cur[0]
+        ws.row_dimensions[r].height = 24 if style in ("receita", "subtotal", "result_pos", "result_neg") else 17
+        lc = ws.cell(row=r, column=2, value=("    " * indent) + label)
+        vc = ws.cell(row=r, column=3, value=round(amount, 2))
+        vc.number_format = '"R$" #,##0.00'
+        vc.alignment = Alignment(horizontal="right")
+        if pct_val is not None:
+            pc = ws.cell(row=r, column=4, value=pct_val / 100)
+            pc.number_format = "0.0%"
+            pc.alignment = Alignment(horizontal="right")
+        if style in STYLES:
+            bg, color, bold, sz = STYLES[style]
+            for col in range(2, 5):
+                ws.cell(row=r, column=col).fill = PatternFill("solid", fgColor=bg)
+            lc.font = Font(bold=bold, size=sz, color=color)
+            vc.font = Font(bold=bold, size=sz, color=color)
+            if pct_val is not None:
+                ws.cell(row=r, column=4).font = Font(bold=bold, size=sz, color=color)
+        cur[0] += 1
+
+    # Title rows
+    r = cur[0]
+    ws.merge_cells(f"B{r}:D{r}")
+    ws.cell(row=r, column=2).value = "DRE — Demonstração do Resultado do Exercício"
+    ws.cell(row=r, column=2).font = Font(bold=True, size=14, color="9B2335")
+    ws.cell(row=r, column=2).alignment = Alignment(horizontal="center")
+    ws.row_dimensions[r].height = 30
+    cur[0] += 1
+    r = cur[0]
+    ws.merge_cells(f"B{r}:D{r}")
+    ws.cell(row=r, column=2).value = (
+        f"Período: {periodo}  |  {current_user.name}  |  {datetime.date.today().strftime('%d/%m/%Y')}"
+    )
+    ws.cell(row=r, column=2).font = Font(size=10, color="888888", italic=True)
+    ws.cell(row=r, column=2).alignment = Alignment(horizontal="center")
+    cur[0] += 2
+
+    SECTIONS = [
+        {"subtotal": "LUCRO BRUTO",           "groups": ["Custos Operacionais"]},
+        {"subtotal": "RESULTADO OPERACIONAL",  "groups": ["Despesas Administrativas", "Despesas Fixas", "Despesas Financeiras"]},
+        {"subtotal": "RESULTADO DO EXERCÍCIO", "groups": ["Investimentos (Ativos)"], "final": True},
+    ]
+
+    grupo_map = {g["name"]: g for g in data["grupos"]}
+    wr("(+) RECEITA BRUTA DE VENDAS", receita, pct(receita), style="receita")
+    cur[0] += 1
+    running = receita
+
+    for section in SECTIONS:
+        for g_name in section["groups"]:
+            g = grupo_map.get(g_name, {"name": g_name, "total": 0.0, "categories": []})
+            wr(f"(-) {g['name']}", g["total"], pct(g["total"]), style="group")
+            for cat in sorted(g.get("categories", []), key=lambda x: -x["total"]):
+                wr(f"{cat['icon']} {cat['name']}", cat["total"], pct(cat["total"]), indent=1, style="category")
+            running -= g["total"]
+        style = ("result_pos" if running >= 0 else "result_neg") if section.get("final") else "subtotal"
+        wr(f"(=) {section['subtotal']}", running, pct(running), style=style)
+        if not section.get("final"):
+            cur[0] += 1
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=dre_{periodo}.xlsx"},
+    )
+
+
 @router.get("/export/reconciliation")
 def export_reconciliation(
     periodo: str = Query(..., description="YYYY-MM"),
