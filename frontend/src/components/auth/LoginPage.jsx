@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import { C, card, inpSt, btn } from "../../styles/theme";
 import { API } from "../../api/client";
-import RotasCafeLogo from "../logos/RotasCafeLogo";
-import WindingRoad from "../logos/WindingRoad";
+import FinanceControlLogo from "../logos/FinanceControlLogo";
 
 export default function LoginPage({onLogin}) {
   const [mode,  setMode]  = useState("login"); // "login" | "register" | "forgot"
@@ -49,22 +48,15 @@ export default function LoginPage({onLogin}) {
 
   return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
-      background:`radial-gradient(ellipse 90% 55% at 50% 0%, rgba(155,35,53,0.18) 0%, rgba(201,123,60,0.06) 40%, ${C.bg} 70%)`,
+      background:`radial-gradient(ellipse 90% 55% at 50% 0%, rgba(75,122,40,0.18) 0%, rgba(42,173,96,0.06) 40%, ${C.bg} 70%)`,
       fontFamily:"'Outfit','Segoe UI',sans-serif",position:"relative",overflow:"hidden"}}>
-      {/* Estrada serpenteante — decoração de fundo */}
-      <div style={{position:"absolute",bottom:-40,right:-60,opacity:1}}>
-        <WindingRoad width={300} height={440} color="#C97B3C" opacity={0.09}/>
-      </div>
-      <div style={{position:"absolute",top:-60,left:-40,opacity:1,transform:"scaleX(-1) rotate(10deg)"}}>
-        <WindingRoad width={220} height={340} color="#9B2335" opacity={0.06}/>
-      </div>
       <div style={{...card({background:C.surface,
-        boxShadow:"0 0 0 1px rgba(155,35,53,0.12), 0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.4)"}),
+        boxShadow:"0 0 0 1px rgba(75,122,40,0.12), 0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.4)"}),
         width:"100%",maxWidth:400,padding:"36px 28px",margin:"16px"}}>
 
         <div style={{textAlign:"center",marginBottom:30}}>
-          <div style={{marginBottom:16,filter:`drop-shadow(0 0 16px rgba(155,35,53,0.5)) drop-shadow(0 4px 10px rgba(0,0,0,0.5))`}}>
-            <RotasCafeLogo size={64}/>
+          <div style={{marginBottom:16,filter:`drop-shadow(0 0 16px rgba(75,122,40,0.5)) drop-shadow(0 4px 10px rgba(0,0,0,0.5))`}}>
+            <FinanceControlLogo size={64}/>
           </div>
           <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</h1>
           <p style={{color:C.muted,fontSize:12,marginTop:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>Gestão Financeira · IFRS</p>
@@ -174,7 +166,7 @@ export default function LoginPage({onLogin}) {
           </button>
         )}
       </div>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Outfit:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');@keyframes spin{to{transform:rotate(360deg)}}body{background:${C.bg}}`}</style>
     </div>
   );
 }
