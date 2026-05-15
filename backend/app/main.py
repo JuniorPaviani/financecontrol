@@ -1,4 +1,5 @@
 import os
+import logging
 from pathlib import Path
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,9 +10,19 @@ from contextlib import asynccontextmanager
 from app.database import engine, Base
 from app.routers import auth, transactions, categories, cards, invoices, reports, employees, users
 
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
+IS_PROD = ENVIRONMENT == "production"
+
+logging.basicConfig(
+    level=logging.WARNING if IS_PROD else logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("Starting FinanceControl — env=%s", ENVIRONMENT)
     Base.metadata.create_all(bind=engine)
     _auto_migrate()
     _seed_admin()
@@ -85,6 +96,8 @@ app = FastAPI(
     version="2.6.0",
     description="Sistema de Gestão Financeira com classificação IFRS",
     lifespan=lifespan,
+    docs_url=None if IS_PROD else "/docs",
+    redoc_url=None if IS_PROD else "/redoc",
 )
 
 app.add_middleware(
@@ -107,7 +120,7 @@ app.include_router(users.router,        prefix="/api/users",         tags=["Usu�
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "version": "2.6.0"}
+    return {"status": "ok", "version": "2.6.0", "env": ENVIRONMENT}
 
 
 # ── Serve frontend static files in production ─────────────────────
