@@ -8,6 +8,7 @@ const IFRS_GROUPS = [
   "Custos Operacionais",
   "Despesas Administrativas",
   "Despesas Financeiras",
+  "Despesas Fixas",
   "Investimentos (Ativos)",
 ];
 
@@ -156,6 +157,7 @@ export default function CategoriesTab({ api }) {
     "Custos Operacionais":      C.accent,
     "Despesas Administrativas": C.purple,
     "Despesas Financeiras":     C.red,
+    "Despesas Fixas":           C.gold,
     "Investimentos (Ativos)":   C.green,
   }[g] || C.accent);
 
