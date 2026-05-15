@@ -12,6 +12,7 @@ import ReportsTab from "./components/reports/ReportsTab";
 import EmployeesTab from "./components/employees/EmployeesTab";
 import ManageUsersTab from "./components/users/ManageUsersTab";
 import FaturaTab from "./components/fatura/FaturaTab";
+import ResetPasswordPage from "./components/auth/ResetPasswordPage";
 
 export default function App() {
   const { user, login, register, logout, api } = useAuth();
@@ -36,6 +37,8 @@ export default function App() {
     return () => window.removeEventListener("resize", h);
   }, []);
 
+  const resetToken = new URLSearchParams(window.location.search).get("reset_token");
+  if (resetToken) return <ResetPasswordPage token={resetToken} />;
   if (!user) return <LoginPage onLogin={handleAuth} />;
 
   return (

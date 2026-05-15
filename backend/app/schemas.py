@@ -151,6 +151,15 @@ class InvoicePreview(BaseModel):
     transactions: List[ImportedTransaction]
 
 
+class ForgotPassword(BaseModel):
+    email: EmailStr
+
+
+class ResetPassword(BaseModel):
+    token: str
+    new_password: str
+
+
 class EmployeeCreate(BaseModel):
     name: str
     cpf: Optional[str] = None

@@ -1,3 +1,7 @@
+import os
+import secrets
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -39,6 +43,60 @@ def login(data: schemas.UserLogin, db: Session = Depends(get_db)):
 @router.get("/me", response_model=schemas.UserOut)
 def me(current_user: models.User = Depends(auth.get_current_user)):
     return current_user
+
+
+@router.post("/forgot-password")
+def forgot_password(data: schemas.ForgotPassword, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == data.email).first()
+    # Always return the same message to avoid leaking whether the e-mail exists
+    msg = {"message": "Se o e-mail estiver cadastrado, você receberá as instruções em breve."}
+    if not user:
+        return msg
+
+    # Invalidate any previous unused tokens for this user
+    db.query(models.PasswordResetToken).filter(
+        models.PasswordResetToken.user_id == user.id,
+        models.PasswordResetToken.used == False,
+    ).update({"used": True})
+
+    token_str  = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(hours=1)
+    db.add(models.PasswordResetToken(user_id=user.id, token=token_str, expires_at=expires_at))
+    db.commit()
+
+    frontend_url = os.getenv("FRONTEND_URL", "https://financecontrol-kiyl.onrender.com")
+    reset_url    = f"{frontend_url}/?reset_token={token_str}"
+
+    try:
+        auth.send_reset_email(user.email, user.name, reset_url)
+    except Exception as e:
+        raise HTTPException(500, detail=f"Erro ao enviar e-mail: {str(e)}")
+
+    return msg
+
+
+@router.post("/reset-password")
+def reset_password(data: schemas.ResetPassword, db: Session = Depends(get_db)):
+    if len(data.new_password) < 6:
+        raise HTTPException(400, detail="A senha deve ter pelo menos 6 caracteres.")
+
+    token = db.query(models.PasswordResetToken).filter(
+        models.PasswordResetToken.token == data.token,
+        models.PasswordResetToken.used  == False,
+    ).first()
+
+    if not token or token.expires_at < datetime.utcnow():
+        raise HTTPException(400, detail="Link inválido ou expirado. Solicite um novo.")
+
+    user = db.query(models.User).filter(models.User.id == token.user_id).first()
+    if not user:
+        raise HTTPException(400, detail="Usuário não encontrado.")
+
+    user.hashed_password = auth.hash_password(data.new_password)
+    token.used = True
+    db.commit()
+
+    return {"message": "Senha redefinida com sucesso!"}
 
 
 def _seed_categories(user_id: int, db: Session):

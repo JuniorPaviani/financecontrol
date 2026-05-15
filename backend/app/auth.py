@@ -56,3 +56,65 @@ def require_admin(current_user: models.User = Depends(get_current_user)) -> mode
     if current_user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acesso restrito a administradores")
     return current_user
+
+
+def send_reset_email(to_email: str, to_name: str, reset_url: str) -> None:
+    import smtplib, ssl
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_pass = os.getenv("SMTP_PASS", "")
+
+    if not smtp_user or not smtp_pass:
+        raise ValueError("Variáveis SMTP_USER e SMTP_PASS não configuradas no servidor.")
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="font-family:'Segoe UI',Arial,sans-serif;background:#0D0805;color:#F5E6D3;margin:0;padding:40px 20px;">
+  <div style="max-width:480px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <h1 style="color:#9B2335;font-size:22px;margin:0 0 4px;letter-spacing:-0.02em;">FinanceControl</h1>
+      <p style="color:#9E826A;font-size:11px;margin:0;text-transform:uppercase;letter-spacing:0.08em;">Gestão Financeira · IFRS</p>
+    </div>
+    <div style="background:#140D07;border:1px solid #3D2415;border-radius:12px;padding:32px;">
+      <h2 style="color:#F5E6D3;font-size:17px;margin:0 0 14px;font-weight:700;">Redefinição de Senha</h2>
+      <p style="color:#9E826A;font-size:14px;line-height:1.65;margin:0 0 24px;">
+        Olá, <strong style="color:#F5E6D3;">{to_name}</strong>!<br><br>
+        Recebemos uma solicitação para redefinir a senha da sua conta.
+        Clique no botão abaixo para criar uma nova senha:
+      </p>
+      <div style="text-align:center;margin:28px 0;">
+        <a href="{reset_url}" style="display:inline-block;background:#9B2335;color:#ffffff;
+           text-decoration:none;padding:14px 36px;border-radius:8px;font-size:14px;
+           font-weight:600;letter-spacing:0.02em;box-shadow:0 4px 14px rgba(155,35,53,0.4);">
+          Redefinir Senha
+        </a>
+      </div>
+      <p style="color:#5A3D28;font-size:12px;margin:0 0 6px;">
+        ⏱ Este link expira em <strong style="color:#9E826A;">1 hora</strong>.
+      </p>
+      <p style="color:#5A3D28;font-size:12px;margin:0;">
+        🔒 Se você não solicitou a redefinição, ignore este e-mail. Sua senha permanece a mesma.
+      </p>
+    </div>
+    <p style="text-align:center;color:#5A3D28;font-size:11px;margin-top:20px;">
+      FinanceControl · Rotas Café
+    </p>
+  </div>
+</body></html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "Redefinição de Senha — FinanceControl"
+    msg["From"]    = f"FinanceControl <{smtp_user}>"
+    msg["To"]      = to_email
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP(smtp_host, smtp_port) as server:
+        server.ehlo()
+        server.starttls(context=context)
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(smtp_user, to_email, msg.as_string())

@@ -107,6 +107,17 @@ class Employee(Base):
     salary_payments = relationship("SalaryPayment", back_populates="employee", cascade="all, delete-orphan")
 
 
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False)
+    token      = Column(String(64), unique=True, index=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    used       = Column(Boolean, default=False)
+    created_at = Column(DateTime, server_default=func.now())
+    user       = relationship("User")
+
+
 class SalaryPayment(Base):
     __tablename__ = "salary_payments"
     id                 = Column(Integer, primary_key=True, index=True)
