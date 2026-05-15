@@ -187,6 +187,192 @@ def installments_projection(
     ]
 
 
+@router.get("/export/reconciliation")
+def export_reconciliation(
+    periodo: str = Query(..., description="YYYY-MM"),
+    card_id: Optional[int] = Query(None),
+    category_ids: Optional[str] = Query(None, description="comma-separated IDs; empty=all"),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from collections import OrderedDict
+    import datetime
+
+    q = db.query(models.Transaction).filter(
+        models.Transaction.user_id == current_user.id,
+        models.Transaction.periodo_referencia == periodo,
+        models.Transaction.type == "D",
+    )
+    if card_id:
+        q = q.filter(models.Transaction.card_id == card_id)
+    if category_ids and category_ids.strip():
+        ids = [int(x) for x in category_ids.split(",") if x.strip().isdigit()]
+        if ids:
+            q = q.filter(models.Transaction.category_id.in_(ids))
+
+    txs = q.order_by(models.Transaction.category_id.nullslast(), models.Transaction.date).all()
+
+    RED, GOLD = "9B2335", "C97B3C"
+    DARK, MID = "1C110A", "231509"
+
+    wb = openpyxl.Workbook()
+
+    # ── Sheet 1: detailed transactions ──────────────────────────────────────────
+    ws = wb.active
+    ws.title = "Conciliação"
+
+    for col, w in zip("ABCDEFGH", [12, 36, 22, 18, 10, 25, 24, 16]):
+        ws.column_dimensions[col].width = w
+    ws.row_dimensions[1].height = 28
+    ws.row_dimensions[3].height = 20
+
+    # Title
+    ws["A1"].value = f"Relatório de Conciliação — {periodo}"
+    ws["A1"].font = Font(bold=True, size=14, color=RED)
+    ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+    ws.merge_cells("A1:H1")
+
+    ws["A2"].value = (
+        f"Gerado em: {datetime.date.today().strftime('%d/%m/%Y')}  |  Usuário: {current_user.name}"
+    )
+    ws["A2"].font = Font(size=9, color="888888", italic=True)
+    ws["A2"].alignment = Alignment(horizontal="center")
+    ws.merge_cells("A2:H2")
+
+    # Column headers
+    for col_idx, h in enumerate(
+        ["Data", "Descrição", "Fornecedor", "Cartão", "Parcela", "Categoria", "Grupo IFRS", "Valor (R$)"], 1
+    ):
+        cell = ws.cell(row=3, column=col_idx, value=h)
+        cell.fill = PatternFill("solid", fgColor=RED)
+        cell.font = Font(bold=True, color="FFFFFF", size=11)
+        cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    # Group transactions by category
+    groups: OrderedDict = OrderedDict()
+    for tx in txs:
+        cat_name = tx.category.name if tx.category else "Sem categoria"
+        ifrs_grp = tx.category.ifrs_group if tx.category else "—"
+        key = (cat_name, ifrs_grp)
+        if key not in groups:
+            groups[key] = []
+        groups[key].append(tx)
+
+    row = 4
+    grand_total = 0.0
+
+    for (cat_name, ifrs_grp), group_txs in groups.items():
+        cat_subtotal = sum(t.amount for t in group_txs)
+        grand_total += cat_subtotal
+
+        # Category header row
+        ws.row_dimensions[row].height = 18
+        ws.merge_cells(f"A{row}:G{row}")
+        ws.cell(row=row, column=1).value = f"  {cat_name}  ·  {ifrs_grp}"
+        ws.cell(row=row, column=1).font = Font(bold=True, color="FFFFFF", size=10)
+        ws.cell(row=row, column=1).fill = PatternFill("solid", fgColor=GOLD)
+        ws.cell(row=row, column=1).alignment = Alignment(horizontal="left", vertical="center")
+
+        sub_cell = ws.cell(row=row, column=8, value=round(cat_subtotal, 2))
+        sub_cell.number_format = 'R$ #,##0.00'
+        sub_cell.font = Font(bold=True, color="FFFFFF", size=10)
+        sub_cell.fill = PatternFill("solid", fgColor=GOLD)
+        sub_cell.alignment = Alignment(horizontal="right", vertical="center")
+        row += 1
+
+        for i, tx in enumerate(group_txs):
+            ws.row_dimensions[row].height = 15
+            bg = "FFF8F0" if i % 2 == 0 else "F5E6D3"
+
+            ws.cell(row=row, column=1, value=tx.date.strftime("%d/%m/%Y"))
+            ws.cell(row=row, column=2, value=tx.description)
+            ws.cell(row=row, column=3, value=tx.supplier or "—")
+            ws.cell(row=row, column=4, value=tx.card.name if tx.card else "—")
+            inst = (
+                f"{tx.installment_current}/{tx.installment_total}"
+                if tx.installment_current else "À vista"
+            )
+            ws.cell(row=row, column=5, value=inst)
+            ws.cell(row=row, column=6, value=cat_name)
+            ws.cell(row=row, column=7, value=ifrs_grp)
+            val_cell = ws.cell(row=row, column=8, value=round(tx.amount, 2))
+            val_cell.number_format = 'R$ #,##0.00'
+
+            for col in range(1, 9):
+                ws.cell(row=row, column=col).fill = PatternFill("solid", fgColor=bg)
+                ws.cell(row=row, column=col).font = Font(size=10)
+            ws.cell(row=row, column=1).alignment = Alignment(horizontal="center")
+            ws.cell(row=row, column=5).alignment = Alignment(horizontal="center")
+            ws.cell(row=row, column=8).alignment = Alignment(horizontal="right")
+            row += 1
+
+    # Grand total
+    row += 1
+    ws.row_dimensions[row].height = 22
+    ws.merge_cells(f"A{row}:G{row}")
+    ws.cell(row=row, column=1, value="TOTAL GERAL")
+    ws.cell(row=row, column=1).alignment = Alignment(horizontal="center", vertical="center")
+    total_cell = ws.cell(row=row, column=8, value=round(grand_total, 2))
+    total_cell.number_format = 'R$ #,##0.00'
+    total_cell.alignment = Alignment(horizontal="right", vertical="center")
+    for col in range(1, 9):
+        ws.cell(row=row, column=col).fill = PatternFill("solid", fgColor=RED)
+        ws.cell(row=row, column=col).font = Font(bold=True, color="FFFFFF", size=12)
+
+    # ── Sheet 2: summary by category ───────────────────────────────────────────
+    ws2 = wb.create_sheet("Resumo")
+    for col, w in zip("ABCD", [28, 28, 8, 16]):
+        ws2.column_dimensions[col].width = w
+
+    ws2["A1"].value = "Resumo por Categoria"
+    ws2["A1"].font = Font(bold=True, size=13, color=RED)
+    ws2.merge_cells("A1:D1")
+    ws2["A1"].alignment = Alignment(horizontal="center")
+
+    for col_idx, h in enumerate(["Categoria", "Grupo IFRS", "Qtd", "Total (R$)"], 1):
+        cell = ws2.cell(row=3, column=col_idx, value=h)
+        cell.fill = PatternFill("solid", fgColor=RED)
+        cell.font = Font(bold=True, color="FFFFFF", size=11)
+        cell.alignment = Alignment(horizontal="center")
+
+    r2 = 4
+    for (cat_name, ifrs_grp), group_txs in groups.items():
+        bg = "FFF8F0" if r2 % 2 == 0 else "F5E6D3"
+        ws2.cell(row=r2, column=1, value=cat_name)
+        ws2.cell(row=r2, column=2, value=ifrs_grp)
+        ws2.cell(row=r2, column=3, value=len(group_txs))
+        v = ws2.cell(row=r2, column=4, value=round(sum(t.amount for t in group_txs), 2))
+        v.number_format = 'R$ #,##0.00'
+        for col in range(1, 5):
+            ws2.cell(row=r2, column=col).fill = PatternFill("solid", fgColor=bg)
+            ws2.cell(row=r2, column=col).font = Font(size=10)
+        ws2.cell(row=r2, column=3).alignment = Alignment(horizontal="center")
+        ws2.cell(row=r2, column=4).alignment = Alignment(horizontal="right")
+        r2 += 1
+
+    r2 += 1
+    ws2.merge_cells(f"A{r2}:C{r2}")
+    ws2.cell(row=r2, column=1, value="TOTAL")
+    t2 = ws2.cell(row=r2, column=4, value=round(grand_total, 2))
+    t2.number_format = 'R$ #,##0.00'
+    for col in range(1, 5):
+        ws2.cell(row=r2, column=col).fill = PatternFill("solid", fgColor=RED)
+        ws2.cell(row=r2, column=col).font = Font(bold=True, color="FFFFFF", size=11)
+    ws2.cell(row=r2, column=1).alignment = Alignment(horizontal="center")
+    ws2.cell(row=r2, column=4).alignment = Alignment(horizontal="right")
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return StreamingResponse(
+        output,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename=conciliacao_{periodo}.xlsx"},
+    )
+
+
 @router.get("/export/excel")
 def export_excel(
     periodo: str = Query(..., description="YYYY-MM"),
