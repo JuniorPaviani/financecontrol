@@ -13,9 +13,10 @@ import EmployeesTab from "./components/employees/EmployeesTab";
 import ManageUsersTab from "./components/users/ManageUsersTab";
 import FaturaTab from "./components/fatura/FaturaTab";
 import ResetPasswordPage from "./components/auth/ResetPasswordPage";
+import ChangePasswordPage from "./components/auth/ChangePasswordPage";
 
 export default function App() {
-  const { user, login, register, logout, api } = useAuth();
+  const { user, token, login, register, logout, updateUser, api } = useAuth();
   const [tab, setTab] = useState("dashboard");
 
   useEffect(() => {
@@ -40,6 +41,9 @@ export default function App() {
   const resetToken = new URLSearchParams(window.location.search).get("reset_token");
   if (resetToken) return <ResetPasswordPage token={resetToken} />;
   if (!user) return <LoginPage onLogin={handleAuth} />;
+  if (user.force_password_change) return (
+    <ChangePasswordPage token={token} onChanged={data => updateUser(data)} />
+  );
 
   return (
     <div style={{

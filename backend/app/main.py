@@ -14,6 +14,7 @@ from app.routers import auth, transactions, categories, cards, invoices, reports
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     _auto_migrate()
+    _seed_admin()
     yield
 
 
@@ -32,6 +33,8 @@ def _auto_migrate():
                     conn.execute(text("ALTER TABLE users ADD COLUMN can_view_reports BOOLEAN DEFAULT 0"))
                 if "can_view_receitas" not in cols:
                     conn.execute(text("ALTER TABLE users ADD COLUMN can_view_receitas BOOLEAN DEFAULT 0"))
+                if "force_password_change" not in cols:
+                    conn.execute(text("ALTER TABLE users ADD COLUMN force_password_change BOOLEAN DEFAULT 0"))
             else:
                 conn.execute(text(
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'admin'"
@@ -42,8 +45,39 @@ def _auto_migrate():
                 conn.execute(text(
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS can_view_receitas BOOLEAN DEFAULT FALSE"
                 ))
+                conn.execute(text(
+                    "ALTER TABLE users ADD COLUMN IF NOT EXISTS force_password_change BOOLEAN DEFAULT FALSE"
+                ))
     except Exception:
         pass
+
+
+def _seed_admin():
+    """Cria usuário admin master via env vars ADMIN_LOGIN / ADMIN_PASSWORD."""
+    admin_login    = os.getenv("ADMIN_LOGIN", "").strip()
+    admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
+    if not admin_login or not admin_password:
+        return
+    from app.database import SessionLocal
+    from app import models, auth as auth_module
+    db = SessionLocal()
+    try:
+        existing = db.query(models.User).filter(models.User.email == admin_login).first()
+        if existing:
+            return
+        admin = models.User(
+            name="Administrador",
+            email=admin_login,
+            hashed_password=auth_module.hash_password(admin_password),
+            role="admin",
+            force_password_change=True,
+        )
+        db.add(admin)
+        db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()
 
 
 app = FastAPI(

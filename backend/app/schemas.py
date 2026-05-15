@@ -11,7 +11,7 @@ class UserCreate(BaseModel):
 
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str  # aceita login livre (ex: ADM.ROTAS) além de e-mails
     password: str
 
 
@@ -23,6 +23,7 @@ class UserOut(BaseModel):
     role: str = "admin"
     can_view_reports: bool = False
     can_view_receitas: bool = False
+    force_password_change: bool = False
     model_config = {"from_attributes": True}
 
 
@@ -157,6 +158,10 @@ class ForgotPassword(BaseModel):
 
 class ResetPassword(BaseModel):
     token: str
+    new_password: str
+
+
+class ChangePasswordRequest(BaseModel):
     new_password: str
 
 
