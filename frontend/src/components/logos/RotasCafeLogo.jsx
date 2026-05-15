@@ -4,10 +4,16 @@ export default function RotasCafeLogo({ size = 48 }) {
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Logo Rotas Café">
       <circle cx="50" cy="50" r="50" fill="#9B2335"/>
 
-      {/* vapores — 3 wisps curvos como na logo */}
-      <path d="M33 34 C31 30 33 26 31 22" stroke={cream} strokeWidth="3" fill="none" strokeLinecap="round"/>
-      <path d="M43 32 C41 27 44 23 42 18" stroke={cream} strokeWidth="3" fill="none" strokeLinecap="round"/>
-      <path d="M53 34 C51 30 53 26 51 22" stroke={cream} strokeWidth="3" fill="none" strokeLinecap="round"/>
+      {/* estrada sinuosa acima da xícara — borda esquerda */}
+      <path d="M44 40 C40 34 34 30 36 22 C38 15 46 14 48 8"
+            stroke={cream} strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+      {/* estrada sinuosa — borda direita */}
+      <path d="M52 40 C48 34 42 30 44 22 C46 15 54 14 56 8"
+            stroke={cream} strokeWidth="3.5" fill="none" strokeLinecap="round"/>
+      {/* marcação central tracejada da estrada */}
+      <path d="M48 38 C46 33 43 29 44.5 24 C46 19 51 17 52 12"
+            stroke={cream} strokeWidth="1.5" fill="none" strokeLinecap="round"
+            strokeDasharray="3 3"/>
 
       {/* corpo da xícara — outline estilo da logo */}
       <path d="M22 42 L26 72 Q27 76 31 76 L63 76 Q67 76 68 72 L72 42 Z"
