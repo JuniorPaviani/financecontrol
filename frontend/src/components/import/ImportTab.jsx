@@ -39,7 +39,7 @@ export default function ImportTab({api}) {
     finally{ setImporting(false); }
   };
 
-  const BANKS = ["Itaú","Santander","Bradesco","Caixa","Sam's Club","Sicredi","Riachuelo"];
+  const BANKS = ["Itaú","Santander","Bradesco","Caixa","Sam's Club","Sicredi","Riachuelo","Stone"];
 
   if(step==="parsing") return (
     <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:360}}>
@@ -129,7 +129,7 @@ export default function ImportTab({api}) {
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
       <div style={{marginBottom:24}}>
         <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Importar Fatura PDF</h2>
-        <p style={{color:C.muted,fontSize:13,margin:"5px 0 0"}}>Suporte a: Itaú, Santander, Bradesco, Caixa, Sam's Club, Sicredi, Riachuelo</p>
+        <p style={{color:C.muted,fontSize:13,margin:"5px 0 0"}}>Suporte a: Itaú, Santander, Bradesco, Caixa, Sam's Club, Sicredi, Riachuelo, Stone</p>
       </div>
 
       <div onDragOver={e=>{e.preventDefault();}} onDrop={e=>{e.preventDefault();handleFile(e.dataTransfer.files[0]);}}

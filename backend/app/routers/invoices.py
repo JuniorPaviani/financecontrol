@@ -12,7 +12,7 @@ from app.parsers.itau import ItauParser
 from app.parsers.santander import SantanderParser
 from app.parsers.bradesco import BradescoParser
 from app.parsers.caixa import CaixaParser
-from app.parsers.banks import SamsClubParser, SicrediParser, RiachueloParser
+from app.parsers.banks import SamsClubParser, SicrediParser, RiachueloParser, StoneParser
 
 router = APIRouter()
 
@@ -24,6 +24,7 @@ PARSERS: List[BaseParser] = [
     SamsClubParser(),
     SicrediParser(),
     RiachueloParser(),
+    StoneParser(),
 ]
 
 
