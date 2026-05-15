@@ -11,6 +11,7 @@ import CategoriesTab from "./components/categories/CategoriesTab";
 import ReportsTab from "./components/reports/ReportsTab";
 import EmployeesTab from "./components/employees/EmployeesTab";
 import ManageUsersTab from "./components/users/ManageUsersTab";
+import FaturaTab from "./components/fatura/FaturaTab";
 
 export default function App() {
   const { user, login, register, logout, api } = useAuth();
@@ -53,6 +54,7 @@ export default function App() {
         {tab === "dashboard"    && <DashboardTab    api={api} />}
         {tab === "transactions" && <TransactionsTab api={api} user={user} />}
         {tab === "import"       && <ImportTab       api={api} />}
+        {tab === "fatura"       && <FaturaTab       api={api} />}
         {tab === "cards"        && <CardsTab        api={api} />}
         {tab === "categories"   && <CategoriesTab   api={api} />}
         {tab === "reports"      && <ReportsTab      api={api} />}

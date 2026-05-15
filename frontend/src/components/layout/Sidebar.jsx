@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { LayoutDashboard, CreditCard, Upload, Tag, BarChart2, LogOut, Users, UserCog } from "lucide-react";
+import { LayoutDashboard, CreditCard, Upload, Tag, BarChart2, LogOut, Users, UserCog, FileText } from "lucide-react";
 import { C } from "../../styles/theme";
 import RotasCafeLogo from "../logos/RotasCafeLogo";
 import WindingRoad from "../logos/WindingRoad";
@@ -12,6 +12,7 @@ export default function Sidebar({active, set, user, onLogout}) {
     {id:"dashboard",    icon:LayoutDashboard, label:"Dashboard"},
     {id:"transactions", icon:CreditCard,      label:"Lançamentos"},
     {id:"import",       icon:Upload,          label:"Importar"},
+    {id:"fatura",       icon:FileText,        label:"Fatura"},
     {id:"cards",        icon:CreditCard,      label:"Cartões"},
     {id:"categories",   icon:Tag,             label:"Categorias"},
     ...(canReports ? [{id:"reports", icon:BarChart2, label:"Relatórios"}] : []),
