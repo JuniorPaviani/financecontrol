@@ -43,18 +43,18 @@ def me(current_user: models.User = Depends(auth.get_current_user)):
 
 def _seed_categories(user_id: int, db: Session):
     defaults = [
-        ("Alimentação",    "Custos Operacionais",      "🍽️", "#F97316"),
-        ("Transporte",     "Custos Operacionais",      "🚗", "#2563EB"),
-        ("Saúde",          "Despesas Administrativas", "💊", "#10B981"),
-        ("Habitação",      "Despesas Administrativas", "🏠", "#8B5CF6"),
-        ("Lazer",          "Custos Operacionais",      "🎬", "#F59E0B"),
-        ("Vestuário",      "Custos Operacionais",      "👕", "#06B6D4"),
-        ("Financeiro",     "Despesas Financeiras",     "💳", "#EF4444"),
-        ("Investimentos",  "Investimentos (Ativos)",   "📈", "#10B981"),
-        ("Educação",       "Despesas Administrativas", "📚", "#A78BFA"),
-        ("Supermercado",   "Custos Operacionais",      "🛒", "#EC4899"),
-        ("Streaming",      "Custos Operacionais",      "📺", "#6366F1"),
-        ("Combustível",    "Custos Operacionais",      "⛽", "#78716C"),
+        # Custos Operacionais
+        ("Insumos",                    "Custos Operacionais",      "📦", "#F97316"),
+        ("Produtos de Limpeza/Higiene","Custos Operacionais",      "🧹", "#06B6D4"),
+        ("Embalagem",                  "Custos Operacionais",      "🗂️", "#F59E0B"),
+        ("Material de Uso Geral",      "Custos Operacionais",      "🔧", "#78716C"),
+        # Despesas Administrativas
+        ("Salários",                   "Despesas Administrativas", "👥", "#8B5CF6"),
+        ("Impostos",                   "Despesas Administrativas", "📋", "#EF4444"),
+        ("Aluguel",                    "Despesas Administrativas", "🏠", "#6366F1"),
+        ("Energia",                    "Despesas Administrativas", "⚡", "#EAB308"),
+        ("Internet",                   "Despesas Administrativas", "🌐", "#10B981"),
+        ("Água",                       "Despesas Administrativas", "💧", "#2563EB"),
     ]
     for name, ifrs, icon, color in defaults:
         db.add(models.Category(user_id=user_id, name=name, ifrs_group=ifrs, icon=icon, color=color))
