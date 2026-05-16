@@ -33,40 +33,6 @@ def create_card(
     return card
 
 
-@router.put("/{card_id}", response_model=schemas.CardOut)
-def update_card(
-    card_id: int,
-    data: schemas.CardCreate,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    card = db.query(models.Card).filter(
-        models.Card.id == card_id, models.Card.user_id == current_user.id
-    ).first()
-    if not card:
-        raise HTTPException(404, "Cartão não encontrado")
-    for k, v in data.model_dump().items():
-        setattr(card, k, v)
-    db.commit()
-    db.refresh(card)
-    return card
-
-
-@router.delete("/{card_id}", status_code=204)
-def delete_card(
-    card_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user),
-):
-    card = db.query(models.Card).filter(
-        models.Card.id == card_id, models.Card.user_id == current_user.id
-    ).first()
-    if not card:
-        raise HTTPException(404, "Cartão não encontrado")
-    card.is_active = False
-    db.commit()
-
-
 @router.get("/invoice-status")
 def list_invoice_status(
     period: str = None,
@@ -195,3 +161,37 @@ def check_due_alerts(
         return {"sent": True, "cards": [c["name"] for c in unpaid]}
     except Exception as e:
         return {"sent": False, "reason": str(e)}
+
+
+@router.put("/{card_id}", response_model=schemas.CardOut)
+def update_card(
+    card_id: int,
+    data: schemas.CardCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    card = db.query(models.Card).filter(
+        models.Card.id == card_id, models.Card.user_id == current_user.id
+    ).first()
+    if not card:
+        raise HTTPException(404, "Cartão não encontrado")
+    for k, v in data.model_dump().items():
+        setattr(card, k, v)
+    db.commit()
+    db.refresh(card)
+    return card
+
+
+@router.delete("/{card_id}", status_code=204)
+def delete_card(
+    card_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    card = db.query(models.Card).filter(
+        models.Card.id == card_id, models.Card.user_id == current_user.id
+    ).first()
+    if not card:
+        raise HTTPException(404, "Cartão não encontrado")
+    card.is_active = False
+    db.commit()

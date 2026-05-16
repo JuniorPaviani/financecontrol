@@ -107,7 +107,7 @@ class TransactionOut(BaseModel):
     installment_current: Optional[int]
     installment_total: Optional[int]
     installment_group: Optional[str]
-    source: str
+    source: Optional[str] = "manual"
     notes: Optional[str]
     payment_method: Optional[str] = "cartao"
     paid: bool = False
