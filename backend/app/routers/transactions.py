@@ -64,6 +64,8 @@ def create_transaction(
         months_ahead = i - start
         tx_date = _add_months(data.date, months_ahead)
 
+        pm = (data.payment_method or "cartao").lower()
+        auto_paid = pm in ("pix", "dinheiro")
         tx = models.Transaction(
             user_id=current_user.id,
             type=data.type,
@@ -73,12 +75,14 @@ def create_transaction(
             amount=round(data.amount, 2),
             periodo_referencia=_periodo(tx_date),
             category_id=data.category_id,
-            card_id=data.card_id,
+            card_id=data.card_id if pm == "cartao" else None,
             installment_current=i if group_id else None,
             installment_total=total if group_id else None,
             installment_group=group_id,
             source="manual",
             notes=data.notes,
+            payment_method=pm,
+            paid=auto_paid,
         )
         db.add(tx)
         created.append(tx)

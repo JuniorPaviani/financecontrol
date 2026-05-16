@@ -71,6 +71,8 @@ class Transaction(Base):
     source          = Column(String(40), default="manual")
     import_batch_id = Column(String(36), nullable=True)
     notes           = Column(Text, nullable=True)
+    payment_method  = Column(String(20), default="cartao")   # cartao | pix | dinheiro | boleto
+    paid            = Column(Boolean, default=False)          # baixado automaticamente para pix/dinheiro
     created_at      = Column(DateTime, server_default=func.now())
     user            = relationship("User", back_populates="transactions")
     category        = relationship("Category", back_populates="transactions")
@@ -106,6 +108,19 @@ class Employee(Base):
     created_at     = Column(DateTime, server_default=func.now())
     user            = relationship("User", back_populates="employees")
     salary_payments = relationship("SalaryPayment", back_populates="employee", cascade="all, delete-orphan")
+
+
+class CardInvoiceStatus(Base):
+    __tablename__ = "card_invoice_status"
+    id         = Column(Integer, primary_key=True, index=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False)
+    card_id    = Column(Integer, ForeignKey("cards.id"), nullable=False)
+    period     = Column(String(7), nullable=False)   # YYYY-MM
+    paid       = Column(Boolean, default=False)
+    paid_at    = Column(DateTime, nullable=True)
+    alerted_at = Column(DateTime, nullable=True)     # último e-mail enviado
+    user       = relationship("User")
+    card       = relationship("Card")
 
 
 class PasswordResetToken(Base):
