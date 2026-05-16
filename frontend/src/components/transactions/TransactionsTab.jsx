@@ -4,7 +4,14 @@ import { C, fmt, fmtD, card, pill, inpSt, selSt, btn } from "../../styles/theme"
 import Loading from "../shared/Loading";
 import ErrMsg from "../shared/ErrMsg";
 
-const EMPTY = {date:"",desc:"",supplier:"",amount:"",type:"D",cat_id:"",card_id:"",inst:"",instTotal:""};
+const PAYMENT_METHODS = [
+  {value:"cartao",  label:"💳 Cartão",   color:"#6366F1"},
+  {value:"pix",     label:"⚡ PIX",       color:"#10B981"},
+  {value:"dinheiro",label:"💵 Dinheiro",  color:"#F59E0B"},
+  {value:"boleto",  label:"📄 Boleto",    color:"#8B5CF6"},
+];
+
+const EMPTY = {date:"",desc:"",supplier:"",amount:"",type:"D",cat_id:"",card_id:"",inst:"",instTotal:"",payment_method:"cartao"};
 
 function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
   const [f,    setF]    = useState({...EMPTY, date: new Date().toISOString().slice(0,10)});
@@ -33,8 +40,9 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
         type:f.type, date:f.date, description:f.desc.toUpperCase(),
         supplier:f.supplier, amount:Number(f.amount),
         category_id:f.cat_id?Number(f.cat_id):null,
-        card_id:f.card_id?Number(f.card_id):null,
+        card_id:f.payment_method==="cartao"&&f.card_id?Number(f.card_id):null,
         installment_current:inst_cur, installment_total:inst_tot,
+        payment_method:f.payment_method,
       })});
       setSaved(true);
       setTimeout(()=>{ setSaved(false); onSaved(); onClose(); }, 1400);
@@ -58,9 +66,9 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
         </div>
 
         {/* Tipo */}
-        <div style={{display:"flex",gap:8,marginBottom:18}}>
+        <div style={{display:"flex",gap:8,marginBottom:14}}>
           {[["D","▼  Despesa",C.red],["R","▲  Receita",C.green]].filter(([v])=>v==="D"||canReceita).map(([v,l,c])=>(
-            <button key={v} onClick={()=>setF({...f,type:v})} style={{flex:1,padding:"11px",borderRadius:9,
+            <button key={v} onClick={()=>setF({...f,type:v,payment_method:v==="R"?"pix":f.payment_method})} style={{flex:1,padding:"11px",borderRadius:9,
               border:`2px solid ${f.type===v?c:C.border}`,background:f.type===v?c+"18":"transparent",
               color:f.type===v?c:C.muted,fontSize:13,fontWeight:700,cursor:"pointer",
               transition:"all 0.15s ease"}}>
@@ -68,6 +76,27 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
             </button>
           ))}
         </div>
+
+        {/* Forma de Pagamento (só despesas) */}
+        {f.type==="D" && (
+          <div style={{marginBottom:18}}>
+            <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:8,textTransform:"uppercase",letterSpacing:"0.06em"}}>Forma de Pagamento *</label>
+            <div style={{display:"flex",gap:6}}>
+              {PAYMENT_METHODS.map(pm=>(
+                <button key={pm.value} onClick={()=>setF({...f,payment_method:pm.value,card_id:pm.value!=="cartao"?"":f.card_id})}
+                  style={{flex:1,padding:"8px 4px",borderRadius:8,border:`2px solid ${f.payment_method===pm.value?pm.color:C.border}`,
+                    background:f.payment_method===pm.value?pm.color+"22":"transparent",
+                    color:f.payment_method===pm.value?pm.color:C.muted,
+                    fontSize:11,fontWeight:600,cursor:"pointer",transition:"all 0.15s ease",textAlign:"center"}}>
+                  {pm.label}
+                </button>
+              ))}
+            </div>
+            {(f.payment_method==="pix"||f.payment_method==="dinheiro") && (
+              <p style={{margin:"6px 0 0",fontSize:11,color:"#10B981"}}>✓ Será baixado automaticamente como pago</p>
+            )}
+          </div>
+        )}
 
         {/* Data + Valor */}
         <div style={{display:"flex",gap:12,marginBottom:14}}>
@@ -256,7 +285,7 @@ export default function TransactionsTab({api, user}) {
           <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
             <thead>
               <tr style={{background:C.surface}}>
-                {["Data","Descrição","Parcela","Cartão","Categoria","Valor","Tipo",""].map(h=>(
+                {["Data","Descrição","Parcela","Cartão","Categoria","Valor","Tipo","Pagto",""].map(h=>(
                   <th key={h} style={{padding:"10px 12px",textAlign:"left",color:C.muted,fontWeight:600,
                     fontSize:10,textTransform:"uppercase",letterSpacing:"0.06em",borderBottom:`1px solid ${C.border}`}}>{h}</th>
                 ))}
@@ -287,6 +316,14 @@ export default function TransactionsTab({api, user}) {
                   </td>
                   <td style={{padding:"9px 12px"}}>
                     <span style={{...pill(t.type==="R"?C.green:C.red),fontSize:10}}>{t.type==="R"?"Receita":"Despesa"}</span>
+                  </td>
+                  <td style={{padding:"9px 12px"}}>
+                    {t.type==="D" && (() => {
+                      const pm = t.payment_method||"cartao";
+                      const cfg = {cartao:["💳",C.purple],pix:["⚡","#10B981"],dinheiro:["💵",C.gold],boleto:["📄","#8B5CF6"]};
+                      const [icon,color] = cfg[pm]||["💳",C.purple];
+                      return <span style={{...pill(color),fontSize:10}}>{icon} {pm}</span>;
+                    })()}
                   </td>
                   <td style={{padding:"9px 8px"}}>
                     {delId===t.id?(

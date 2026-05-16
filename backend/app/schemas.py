@@ -79,6 +79,7 @@ class TransactionCreate(BaseModel):
     installment_current: Optional[int] = None
     installment_total: Optional[int] = None
     notes: Optional[str] = None
+    payment_method: Optional[str] = "cartao"   # cartao | pix | dinheiro | boleto
 
     @field_validator("type")
     @classmethod
@@ -108,8 +109,19 @@ class TransactionOut(BaseModel):
     installment_group: Optional[str]
     source: Optional[str] = "manual"
     notes: Optional[str]
+    payment_method: Optional[str] = "cartao"
+    paid: bool = False
     category: Optional[CategoryOut]
     card: Optional[CardOut]
+    model_config = {"from_attributes": True}
+
+
+class CardInvoiceStatusOut(BaseModel):
+    id: Optional[int] = None
+    card_id: int
+    period: str
+    paid: bool = False
+    paid_at: Optional[str] = None
     model_config = {"from_attributes": True}
 
 
