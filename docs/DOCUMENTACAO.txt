@@ -1,0 +1,540 @@
+================================================================================
+  FINANCECONTROL — DOCUMENTAÇÃO TÉCNICA DO PROJETO
+  Versão: 2.6.0  |  Data: 15/05/2026
+================================================================================
+
+ÍNDICE
+------
+  1. Visão Geral
+  2. Arquitetura
+  3. Stack Tecnológica
+  4. Estrutura de Diretórios
+  5. Modelos de Dados (Banco de Dados)
+  6. API — Endpoints
+  7. Autenticação e Segurança
+  8. Importação de Faturas PDF
+  9. Frontend — Módulos
+  10. Ambientes (Production / Staging / Development)
+  11. Deploy — Render.com
+  12. Repositórios GitHub
+  13. Variáveis de Ambiente
+  14. Credenciais de Acesso (Ambientes)
+  15. Fluxo de Primeiro Acesso (Admin)
+  16. Como Rodar Localmente
+
+
+================================================================================
+1. VISÃO GERAL
+================================================================================
+
+O FinanceControl é um sistema de gestão financeira com classificação IFRS
+(International Financial Reporting Standards), desenvolvido para controle de:
+
+  - Lançamentos de receitas e despesas
+  - Gestão de cartões de crédito
+  - Importação de faturas PDF de múltiplos bancos
+  - Relatórios financeiros (DRE, fluxo de caixa, conciliação)
+  - Gestão de funcionários e folha de pagamento
+  - Controle de categorias com agrupamento IFRS
+  - Múltiplos usuários com controle de permissões
+
+O sistema existe em duas versões:
+
+  a) ROTAS CAFÉ (Privado)
+     - URL Produção: https://financecontrol-kiyl.onrender.com
+     - URL Staging:  https://rotas-cafe-staging.onrender.com
+     - Repo GitHub:  https://github.com/JuniorPaviani/rotas-cafe
+     - Tema: verde escuro (brand Rotas Café)
+
+  b) FINANCECONTROL (Público / SaaS)
+     - URL Produção: https://financecontrol-public.onrender.com
+     - Repo GitHub:  https://github.com/JuniorPaviani/financecontrol
+     - Tema: verde militar
+
+
+================================================================================
+2. ARQUITETURA
+================================================================================
+
+  [ React/Vite (SPA) ]
+         |
+         | HTTP/JSON (REST)
+         v
+  [ FastAPI (Python 3.12) ]
+         |
+         | SQLAlchemy ORM
+         v
+  [ PostgreSQL (Render / Neon.tech) ]
+
+  O frontend é compilado (npm run build) durante o build do Render e servido
+  como arquivos estáticos pelo próprio FastAPI em produção.
+  O FastAPI captura qualquer rota não-API e retorna o index.html (SPA routing).
+
+  Em desenvolvimento:
+    - Frontend: Vite dev server (porta 5173)
+    - Backend:  Uvicorn (porta 8000)
+    - CORS liberado para localhost
+
+
+================================================================================
+3. STACK TECNOLÓGICA
+================================================================================
+
+  BACKEND
+  -------
+  - Python 3.12.10
+  - FastAPI 0.115.0
+  - Uvicorn 0.30.6 (servidor ASGI)
+  - SQLAlchemy 2.0.35 (ORM)
+  - Pydantic 2.9.2 (validação)
+  - python-jose 3.3.0 (JWT tokens)
+  - passlib + bcrypt 4.1.3 (hashing de senhas)
+  - pdfplumber 0.11.4 (extração de texto de PDF)
+  - openpyxl 3.1.5 (exportação Excel)
+  - reportlab 4.5.1 (geração de PDF)
+  - psycopg2-binary 2.9.9 (PostgreSQL driver)
+  - Alembic 1.13.3 (migrações)
+
+  FRONTEND
+  --------
+  - React 18 + Vite
+  - Node 20.18.0
+  - Lucide React (ícones)
+  - Recharts (gráficos)
+  - XLSX / ExcelJS (exportação)
+
+  INFRAESTRUTURA
+  --------------
+  - Render.com (hosting — plano Free + card verificado)
+  - PostgreSQL gerenciado (Render para Rotas Café; Neon.tech para FinanceControl)
+  - GitHub (controle de versão; auto-deploy no push para main)
+  - Stripe (verificação de cartão no Render)
+
+
+================================================================================
+4. ESTRUTURA DE DIRETÓRIOS
+================================================================================
+
+  financecontrol/
+  ├── backend/
+  │   ├── app/
+  │   │   ├── main.py          # Entrypoint FastAPI, lifespan, SPA serving
+  │   │   ├── database.py      # Engine SQLAlchemy, SessionLocal, Base
+  │   │   ├── models.py        # Todos os modelos ORM
+  │   │   ├── schemas.py       # Schemas Pydantic (request/response)
+  │   │   ├── auth.py          # JWT, hashing, get_current_user
+  │   │   ├── routers/
+  │   │   │   ├── auth.py         # /api/auth/*
+  │   │   │   ├── transactions.py # /api/transactions/*
+  │   │   │   ├── categories.py   # /api/categories/*
+  │   │   │   ├── cards.py        # /api/cards/*
+  │   │   │   ├── invoices.py     # /api/invoices/* (upload PDF)
+  │   │   │   ├── reports.py      # /api/reports/*
+  │   │   │   ├── employees.py    # /api/employees/*
+  │   │   │   └── users.py        # /api/users/*
+  │   │   └── parsers/
+  │   │       ├── base.py         # BaseParser abstrato
+  │   │       ├── itau.py         # Parser Itaú
+  │   │       ├── bradesco.py     # Parser Bradesco
+  │   │       ├── santander.py    # Parser Santander
+  │   │       ├── caixa.py        # Parser Caixa Econômica
+  │   │       └── banks.py        # Sam's Club, Sicredi, Stone, Riachuelo
+  │   ├── requirements.txt
+  │   └── runtime.txt          # python-3.12.10
+  ├── frontend/
+  │   ├── src/
+  │   │   ├── App.jsx           # Roteamento de abas, autenticação
+  │   │   ├── main.jsx
+  │   │   ├── hooks/
+  │   │   │   └── useAuth.js    # Hook de autenticação (token, user, login/logout)
+  │   │   ├── api/
+  │   │   │   └── client.js     # apiFetch — wrapper HTTP com Bearer token
+  │   │   ├── styles/
+  │   │   │   └── theme.js      # Paleta de cores, helpers de estilo
+  │   │   └── components/
+  │   │       ├── auth/         # LoginPage, ChangePasswordPage, ResetPasswordPage
+  │   │       ├── dashboard/    # DashboardTab
+  │   │       ├── transactions/ # TransactionsTab
+  │   │       ├── import/       # ImportTab (upload PDF)
+  │   │       ├── fatura/       # FaturaTab (visualização de fatura)
+  │   │       ├── cards/        # CardsTab
+  │   │       ├── categories/   # CategoriesTab
+  │   │       ├── reports/      # ReportsTab (DRE, fluxo, conciliação)
+  │   │       ├── employees/    # EmployeesTab + folha de pagamento
+  │   │       ├── users/        # ManageUsersTab
+  │   │       ├── layout/       # Sidebar (navegação lateral)
+  │   │       └── logos/        # RotasCafeLogo, FinanceControlLogo
+  │   └── vite.config.js
+  ├── render.yaml               # Blueprint Render (DB + serviço web)
+  ├── render-build.sh           # Script de build (install deps + npm build)
+  ├── docker-compose.yml        # Docker para desenvolvimento local
+  ├── INICIAR.bat               # Atalho Windows — sobe containers locais
+  └── PARAR.bat                 # Atalho Windows — derruba containers locais
+
+
+================================================================================
+5. MODELOS DE DADOS (BANCO DE DADOS)
+================================================================================
+
+  USERS
+  -----
+  id, name, email (único), hashed_password
+  role: "admin" | "user"
+  can_view_reports: bool       — permissão para ver Relatórios
+  can_view_receitas: bool      — permissão para ver receitas
+  force_password_change: bool  — força troca na próximo login
+  is_active: bool
+  created_at: datetime
+
+  CATEGORIES
+  ----------
+  id, user_id (FK), name, ifrs_group, icon, color
+
+  Grupos IFRS padrão gerados no cadastro:
+    - Custos Operacionais
+    - Despesas Administrativas
+
+  CARDS
+  -----
+  id, user_id (FK), name, bank, last_four
+  credit_limit, closing_day, due_day, color, is_active, created_at
+
+  TRANSACTIONS
+  ------------
+  id, user_id (FK), category_id (FK), card_id (FK)
+  type: "D" (Despesa) | "R" (Receita)
+  date, description, supplier, amount
+  periodo_referencia: "YYYY-MM"
+  installment_current, installment_total, installment_group (UUID)
+  source: "manual" | "pdf_import"
+  import_batch_id, notes, created_at
+
+  IMPORT_LOGS
+  -----------
+  id, user_id (FK), batch_id, bank, filename
+  total_rows, imported_rows, status, error_detail, created_at
+
+  EMPLOYEES
+  ---------
+  id, user_id (FK), name, cpf, position, department
+  base_salary, hire_date, status, notes, created_at
+
+  SALARY_PAYMENTS
+  ---------------
+  id, employee_id (FK), user_id (FK), periodo_referencia
+  base_salary, bonus, deductions, inss, fgts, net_salary
+  payment_date, status, notes, created_at
+
+  PASSWORD_RESET_TOKENS
+  ----------------------
+  id, user_id (FK), token (único, 64 chars), expires_at, used, created_at
+
+
+================================================================================
+6. API — ENDPOINTS
+================================================================================
+
+  Autenticação (/api/auth)
+  ------------------------
+  POST /register              — Cadastro de novo usuário (semeia categorias padrão)
+  POST /login                 — Login por e-mail/login + senha → JWT
+  GET  /me                    — Retorna usuário autenticado
+  POST /forgot-password       — Envia e-mail com link de reset
+  POST /reset-password        — Redefine senha via token do e-mail
+  POST /change-password       — Troca senha (requer auth; limpa force_password_change)
+
+  Lançamentos (/api/transactions)
+  --------------------------------
+  GET    /                    — Lista lançamentos (filtros: período, tipo, cartão)
+  POST   /                    — Cria lançamento (suporte a parcelamento)
+  PUT    /{id}                — Atualiza lançamento
+  DELETE /{id}                — Remove lançamento (ou todo o grupo de parcelas)
+
+  Categorias (/api/categories)
+  -----------------------------
+  GET    /                    — Lista categorias do usuário
+  POST   /                    — Cria categoria
+  PUT    /{id}                — Atualiza categoria
+  DELETE /{id}                — Remove categoria
+
+  Cartões (/api/cards)
+  --------------------
+  GET    /                    — Lista cartões ativos
+  POST   /                    — Cria cartão
+  PUT    /{id}                — Atualiza cartão
+  DELETE /{id}                — Desativa cartão
+
+  Importação de Faturas (/api/invoices)
+  ---------------------------------------
+  POST /upload                — Upload de PDF; detecta banco e extrai transações
+  POST /confirm               — Confirma e salva as transações extraídas
+
+  Relatórios (/api/reports)
+  --------------------------
+  GET /summary                — Resumo mensal (N últimos meses)
+  GET /dre                    — DRE por período
+  GET /reconciliation         — Conciliação por categoria
+  GET /cashflow               — Fluxo de caixa
+  GET /export/excel           — Exporta Excel
+
+  Funcionários (/api/employees)
+  ------------------------------
+  GET    /                    — Lista funcionários
+  POST   /                    — Cadastra funcionário
+  PUT    /{id}                — Atualiza funcionário
+  DELETE /{id}                — Remove funcionário
+  GET    /{id}/payments       — Histórico de pagamentos
+  POST   /{id}/payments       — Registra pagamento de salário
+
+  Usuários (/api/users)        — Apenas role=admin
+  ---------------------------------
+  GET    /                    — Lista usuários da conta
+  POST   /                    — Cria usuário com permissões
+  PUT    /{id}                — Atualiza permissões/dados
+  DELETE /{id}                — Remove usuário
+
+  Health (/api/health)
+  --------------------
+  GET /api/health             — Status, versão e ambiente
+
+
+================================================================================
+7. AUTENTICAÇÃO E SEGURANÇA
+================================================================================
+
+  - Tokens JWT (HS256) com expiração configurável (padrão: 48 horas)
+  - Senhas com hash bcrypt
+  - SECRET_KEY gerado automaticamente pelo Render (nunca exposto)
+  - Em produção: Swagger UI e ReDoc desabilitados (ENVIRONMENT=production)
+  - CORS configurado para aceitar qualquer origem (* em produção; pode restringir)
+  - Reset de senha via token único de 64 chars com expiração de 1 hora
+  - force_password_change: admin criado via seed é forçado a trocar a senha
+    no primeiro login (frontend redireciona para ChangePasswordPage antes
+    de mostrar qualquer funcionalidade)
+
+  Roles:
+    - "admin": acesso total, incluindo gestão de usuários
+    - "user":  acesso limitado por flags can_view_reports / can_view_receitas
+
+
+================================================================================
+8. IMPORTAÇÃO DE FATURAS PDF
+================================================================================
+
+  Bancos suportados (parsers implementados):
+    - Itaú
+    - Bradesco
+    - Santander
+    - Caixa Econômica Federal
+    - Sam's Club (Mastercard)
+    - Sicredi
+    - Stone
+    - Riachuelo (Midway)
+
+  Fluxo:
+    1. Usuário faz upload do PDF em ImportTab
+    2. Backend usa pdfplumber para extrair texto
+    3. Auto-detecção do banco pelo texto (regex nos parsers)
+    4. Parser específico extrai: data, descrição, valor, parcela
+    5. Frontend exibe prévia para revisão (com sugestão de categoria)
+    6. Usuário confirma → transações salvas com source="pdf_import"
+    7. Log registrado em import_logs (batch_id, totais, erros)
+
+
+================================================================================
+9. FRONTEND — MÓDULOS
+================================================================================
+
+  Dashboard     — Cards de resumo mensal (receitas, despesas, saldo, parcelas
+                  futuras) + gráfico de barras/linha histórico
+
+  Lançamentos   — Tabela CRUD de transações com filtros por período, tipo,
+                  cartão; suporte a parcelamento; busca por descrição
+
+  Importar      — Upload de fatura PDF com prévia e confirmação
+
+  Fatura        — Visualização de fatura por cartão/mês com agrupamento
+
+  Cartões       — CRUD de cartões de crédito com limite, datas de fechamento/
+                  vencimento
+
+  Categorias    — CRUD de categorias com ícone, cor e grupo IFRS
+
+  Relatórios    — Três modos:
+                  • DRE (Demonstração do Resultado do Exercício) por período
+                  • Fluxo de Caixa mensal
+                  • Conciliação por categoria com filtros de chip interativos
+                  Exportação para Excel em todos os modos
+
+  Funcionários  — Cadastro de funcionários + registro de pagamentos de salário
+                  com INSS, FGTS, bônus, deduções
+
+  Usuários      — (apenas admin) Gestão de usuários com controle de permissões
+
+
+================================================================================
+10. AMBIENTES
+================================================================================
+
+  PRODUCTION (main branch)
+  -------------------------
+  ENVIRONMENT=production
+    - Log level: WARNING
+    - Swagger/ReDoc: desabilitado
+    - Health: retorna env=production
+
+  STAGING (dev branch)
+  --------------------
+  ENVIRONMENT=staging
+    - Log level: INFO
+    - Swagger: disponível em /docs
+    - Deploy automático no push para branch dev
+    - Banco de dados: SQLite (sem DATABASE_URL configurado) ou PostgreSQL separado
+    - URL: https://rotas-cafe-staging.onrender.com
+
+  DEVELOPMENT (local)
+  -------------------
+  ENVIRONMENT=development (padrão quando não definido)
+    - Log level: INFO
+    - Swagger: disponível em /docs e /redoc
+    - Banco: SQLite local (financecontrol.db) ou .env com DATABASE_URL
+
+
+================================================================================
+11. DEPLOY — RENDER.COM
+================================================================================
+
+  Build Command:
+    chmod +x render-build.sh && ./render-build.sh
+
+  render-build.sh faz:
+    1. cd frontend && npm install && npm run build
+    2. cp -r dist/* ../static/ (ou estrutura equivalente)
+    3. cd ../backend && pip install -r requirements.txt
+
+  Start Command:
+    cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+
+  Auto-migrate no startup (main.py → _auto_migrate()):
+    - Verifica e adiciona colunas faltantes em users
+    - Compatível com SQLite e PostgreSQL
+
+  Seed admin no startup (main.py → _seed_admin()):
+    - Lê ADMIN_LOGIN / ADMIN_PASSWORD das variáveis de ambiente
+    - Cria usuário admin apenas se não existir
+    - Marca force_password_change=True
+
+
+================================================================================
+12. REPOSITÓRIOS GITHUB
+================================================================================
+
+  Rotas Café (privado):
+    https://github.com/JuniorPaviani/rotas-cafe
+    Branch principal: main  (produção)
+    Branch staging:   dev   (staging)
+
+  FinanceControl (público):
+    https://github.com/JuniorPaviani/financecontrol
+    Branch principal: main  (produção)
+
+  Ambos os repositórios compartilham o mesmo código-fonte; as diferenças
+  ficam apenas em variáveis de ambiente e no logo (RotasCafeLogo vs
+  FinanceControlLogo, controlado por componente importado em LoginPage).
+
+
+================================================================================
+13. VARIÁVEIS DE AMBIENTE
+================================================================================
+
+  Variável              Obrigatório   Descrição
+  --------------------  -----------   -----------------------------------------
+  DATABASE_URL          Sim (prod)    Connection string PostgreSQL
+                                      Ex: postgresql://user:pass@host/db
+  SECRET_KEY            Sim           Chave JWT (mínimo 32 chars aleatórios)
+  TOKEN_EXPIRE_HOURS    Não           Expiração do token JWT (padrão: 48)
+  ENVIRONMENT           Não           "production" | "staging" | "development"
+  PYTHON_VERSION        Sim (Render)  Versão Python para o build (3.12.10)
+  NODE_VERSION          Sim (Render)  Versão Node para o build (20.18.0)
+  ADMIN_LOGIN           Não           Login do usuário admin master (seed)
+  ADMIN_PASSWORD        Não           Senha provisória do admin master (seed)
+  FRONTEND_URL          Não           URL base para links de reset de senha
+                                      (padrão: https://financecontrol-kiyl.onrender.com)
+
+
+================================================================================
+14. CREDENCIAIS DE ACESSO (AMBIENTES)
+================================================================================
+
+  ROTAS CAFÉ — PRODUÇÃO
+    URL:   https://financecontrol-kiyl.onrender.com
+    Login: ADM.ROTAS
+    Senha: definida no primeiro acesso (provisória: 123123)
+    Obs:   force_password_change=True — troca obrigatória no 1º login
+
+  ROTAS CAFÉ — STAGING
+    URL:   https://rotas-cafe-staging.onrender.com
+    Login: adm.rotas.staging
+    Senha: staging@2026 (definida no primeiro acesso em 15/05/2026)
+    Obs:   force_password_change=True no primeiro acesso
+
+  FINANCECONTROL — PRODUÇÃO (PÚBLICO)
+    URL:   https://financecontrol-public.onrender.com
+    Login: adm.publico
+    Senha: definida no primeiro acesso (provisória: 123)
+
+
+================================================================================
+15. FLUXO DE PRIMEIRO ACESSO (ADMIN)
+================================================================================
+
+  1. Admin é criado via _seed_admin() com force_password_change=True
+  2. Admin faz login com credenciais provisórias (ADMIN_LOGIN / ADMIN_PASSWORD)
+  3. Backend retorna token JWT com user.force_password_change=true
+  4. Frontend (App.jsx) detecta o flag e exibe <ChangePasswordPage>
+     antes de qualquer outra tela
+  5. Admin define nova senha (mínimo 6 caracteres)
+  6. POST /api/auth/change-password salva novo hash + limpa force_password_change
+  7. Novo token JWT é retornado → admin acessa o Dashboard normalmente
+
+
+================================================================================
+16. COMO RODAR LOCALMENTE
+================================================================================
+
+  Opção A — Docker (recomendado)
+  --------------------------------
+  Pré-requisito: Docker Desktop instalado
+
+  Windows:   duplo clique em INICIAR.bat
+  Linux/Mac: docker-compose up -d
+
+  Acesso:
+    Frontend: http://localhost:5173
+    Backend:  http://localhost:8000
+    Swagger:  http://localhost:8000/docs
+
+  Opção B — Manual
+  -----------------
+  # Backend
+  cd backend
+  python -m venv .venv
+  .venv\Scripts\activate          # Windows
+  # source .venv/bin/activate     # Linux/Mac
+  pip install -r requirements.txt
+  uvicorn app.main:app --reload
+
+  # Frontend (outro terminal)
+  cd frontend
+  npm install
+  npm run dev
+
+  Variáveis locais (backend/.env):
+    DATABASE_URL=sqlite:///./financecontrol.db
+    SECRET_KEY=sua-chave-local-qualquer
+    ENVIRONMENT=development
+
+
+================================================================================
+  Documento gerado em 15/05/2026 — FinanceControl v2.6.0
+================================================================================
