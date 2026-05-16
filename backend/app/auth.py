@@ -64,7 +64,7 @@ def send_reset_email(to_email: str, to_name: str, reset_url: str) -> None:
     from email.mime.multipart import MIMEMultipart
 
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_port = int(os.getenv("SMTP_PORT", "465"))
     smtp_user = os.getenv("SMTP_USER", "")
     smtp_pass = os.getenv("SMTP_PASS", "")
 
@@ -113,9 +113,7 @@ def send_reset_email(to_email: str, to_name: str, reset_url: str) -> None:
     msg.attach(MIMEText(html, "html", "utf-8"))
 
     context = ssl.create_default_context()
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.ehlo()
-        server.starttls(context=context)
+    with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context) as server:
         server.login(smtp_user, smtp_pass)
         server.sendmail(smtp_user, to_email, msg.as_string())
 
@@ -126,7 +124,7 @@ def send_due_alert_email(cards_due: list) -> None:
     from email.mime.multipart import MIMEMultipart
 
     smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_port = int(os.getenv("SMTP_PORT", "465"))
     smtp_user = os.getenv("SMTP_USER", "")
     smtp_pass = os.getenv("SMTP_PASS", "")
     alert_email = os.getenv("ALERT_EMAIL", "REDACTED_EMAIL")
@@ -182,8 +180,6 @@ def send_due_alert_email(cards_due: list) -> None:
     msg.attach(MIMEText(html, "html", "utf-8"))
 
     context = ssl.create_default_context()
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.ehlo()
-        server.starttls(context=context)
+    with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context) as server:
         server.login(smtp_user, smtp_pass)
         server.sendmail(smtp_user, alert_email, msg.as_string())
