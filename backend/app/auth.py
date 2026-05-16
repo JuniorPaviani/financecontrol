@@ -58,18 +58,27 @@ def require_admin(current_user: models.User = Depends(get_current_user)) -> mode
     return current_user
 
 
+def _resend_send(to_email: str, subject: str, html: str) -> None:
+    import urllib.request, json as _json
+    api_key = os.getenv("RESEND_API_KEY", "")
+    if not api_key:
+        raise ValueError("RESEND_API_KEY não configurada.")
+    payload = _json.dumps({
+        "from": "FinanceControl <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": subject,
+        "html": html,
+    }).encode()
+    req = urllib.request.Request(
+        "https://api.resend.com/emails",
+        data=payload,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        resp.read()
+
+
 def send_reset_email(to_email: str, to_name: str, reset_url: str) -> None:
-    import smtplib, ssl
-    from email.mime.text import MIMEText
-    from email.mime.multipart import MIMEMultipart
-
-    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "465"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASS", "")
-
-    if not smtp_user or not smtp_pass:
-        raise ValueError("Variáveis SMTP_USER e SMTP_PASS não configuradas no servidor.")
 
     html = f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"></head>
@@ -106,31 +115,11 @@ def send_reset_email(to_email: str, to_name: str, reset_url: str) -> None:
   </div>
 </body></html>"""
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = "Redefinição de Senha — FinanceControl"
-    msg["From"]    = f"FinanceControl <{smtp_user}>"
-    msg["To"]      = to_email
-    msg.attach(MIMEText(html, "html", "utf-8"))
-
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context) as server:
-        server.login(smtp_user, smtp_pass)
-        server.sendmail(smtp_user, to_email, msg.as_string())
+    _resend_send(to_email, "Redefinição de Senha — FinanceControl", html)
 
 
 def send_due_alert_email(cards_due: list) -> None:
-    import smtplib, ssl
-    from email.mime.text import MIMEText
-    from email.mime.multipart import MIMEMultipart
-
-    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "465"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_pass = os.getenv("SMTP_PASS", "")
     alert_email = os.getenv("ALERT_EMAIL", "REDACTED_EMAIL")
-
-    if not smtp_user or not smtp_pass:
-        raise ValueError("SMTP não configurado.")
 
     rows = "".join(
         f"<tr><td style='padding:8px 12px;color:#F5E6D3;'>{c['name']}</td>"
@@ -173,13 +162,4 @@ def send_due_alert_email(cards_due: list) -> None:
   </div>
 </body></html>"""
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = f"⚠️ Vencimento de Fatura Hoje — {len(cards_due)} cartão(ns)"
-    msg["From"]    = f"FinanceControl <{smtp_user}>"
-    msg["To"]      = alert_email
-    msg.attach(MIMEText(html, "html", "utf-8"))
-
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context) as server:
-        server.login(smtp_user, smtp_pass)
-        server.sendmail(smtp_user, alert_email, msg.as_string())
+    _resend_send(alert_email, f"⚠️ Vencimento de Fatura Hoje — {len(cards_due)} cartão(ns)", html)

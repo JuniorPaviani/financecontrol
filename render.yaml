@@ -36,5 +36,7 @@ services:
         sync: false
       - key: ALERT_EMAIL
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
       - key: FRONTEND_URL
         value: https://financecontrol-kiyl.onrender.com
