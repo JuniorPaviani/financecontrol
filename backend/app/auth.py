@@ -118,3 +118,72 @@ def send_reset_email(to_email: str, to_name: str, reset_url: str) -> None:
         server.starttls(context=context)
         server.login(smtp_user, smtp_pass)
         server.sendmail(smtp_user, to_email, msg.as_string())
+
+
+def send_due_alert_email(cards_due: list) -> None:
+    import smtplib, ssl
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_pass = os.getenv("SMTP_PASS", "")
+    alert_email = os.getenv("ALERT_EMAIL", "REDACTED_EMAIL")
+
+    if not smtp_user or not smtp_pass:
+        raise ValueError("SMTP não configurado.")
+
+    rows = "".join(
+        f"<tr><td style='padding:8px 12px;color:#F5E6D3;'>{c['name']}</td>"
+        f"<td style='padding:8px 12px;color:#9E826A;'>{c['bank']}</td>"
+        f"<td style='padding:8px 12px;color:#E8A87C;font-weight:700;'>Dia {c['due_day']}</td></tr>"
+        for c in cards_due
+    )
+
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="font-family:'Segoe UI',Arial,sans-serif;background:#0D0805;color:#F5E6D3;margin:0;padding:40px 20px;">
+  <div style="max-width:520px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <h1 style="color:#9B2335;font-size:22px;margin:0 0 4px;">FinanceControl</h1>
+      <p style="color:#9E826A;font-size:11px;margin:0;text-transform:uppercase;letter-spacing:0.08em;">Gestão Financeira · IFRS</p>
+    </div>
+    <div style="background:#140D07;border:1px solid #3D2415;border-radius:12px;padding:32px;">
+      <h2 style="color:#E8A87C;font-size:17px;margin:0 0 8px;">⚠️ Vencimento de Fatura Hoje</h2>
+      <p style="color:#9E826A;font-size:14px;line-height:1.65;margin:0 0 20px;">
+        Os seguintes cartões vencem <strong style="color:#F5E6D3;">hoje</strong> e ainda não tiveram a fatura marcada como paga:
+      </p>
+      <table style="width:100%;border-collapse:collapse;border:1px solid #3D2415;border-radius:8px;overflow:hidden;">
+        <thead>
+          <tr style="background:#1E100A;">
+            <th style="padding:10px 12px;text-align:left;color:#9E826A;font-size:11px;text-transform:uppercase;">Cartão</th>
+            <th style="padding:10px 12px;text-align:left;color:#9E826A;font-size:11px;text-transform:uppercase;">Banco</th>
+            <th style="padding:10px 12px;text-align:left;color:#9E826A;font-size:11px;text-transform:uppercase;">Vencimento</th>
+          </tr>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
+      <div style="margin-top:24px;text-align:center;">
+        <a href="https://financecontrol-kiyl.onrender.com" style="display:inline-block;background:#9B2335;color:#fff;
+           text-decoration:none;padding:12px 32px;border-radius:8px;font-size:14px;font-weight:600;">
+          Acessar Sistema
+        </a>
+      </div>
+    </div>
+    <p style="text-align:center;color:#5A3D28;font-size:11px;margin-top:20px;">FinanceControl · Rotas Café</p>
+  </div>
+</body></html>"""
+
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = f"⚠️ Vencimento de Fatura Hoje — {len(cards_due)} cartão(ns)"
+    msg["From"]    = f"FinanceControl <{smtp_user}>"
+    msg["To"]      = alert_email
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
+    context = ssl.create_default_context()
+    with smtplib.SMTP(smtp_host, smtp_port) as server:
+        server.ehlo()
+        server.starttls(context=context)
+        server.login(smtp_user, smtp_pass)
+        server.sendmail(smtp_user, alert_email, msg.as_string())

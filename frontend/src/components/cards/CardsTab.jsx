@@ -1,20 +1,37 @@
-import { useState, useEffect } from "react";
-import { Plus, X, Trash2, CreditCard } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Plus, X, Trash2, CreditCard, CheckCircle2, Clock } from "lucide-react";
 import { C, fmt, card, inpSt, selSt, btn } from "../../styles/theme";
 import Loading from "../shared/Loading";
 import ErrMsg from "../shared/ErrMsg";
 
 export default function CardsTab({api}) {
-  const [cards,  setCards]  = useState([]);
-  const [modal,  setModal]  = useState(false);
-  const [loading,setLoading]= useState(true);
-  const [err,    setErr]    = useState("");
-  const [f,      setF]      = useState({name:"",bank:"Itaú",last_four:"",credit_limit:"",closing_day:"",due_day:"",color:"#2563EB"});
+  const [cards,    setCards]    = useState([]);
+  const [statuses, setStatuses] = useState([]);
+  const [modal,    setModal]    = useState(false);
+  const [loading,  setLoading]  = useState(true);
+  const [err,      setErr]      = useState("");
+  const [periodo,  setPeriodo]  = useState(new Date().toISOString().slice(0,7));
+  const [f,        setF]        = useState({name:"",bank:"Itaú",last_four:"",credit_limit:"",closing_day:"",due_day:"",color:"#2563EB"});
 
   const BANKS_LIST=["Itaú","Santander","Bradesco","Caixa","Sicredi","Sam's Club","Riachuelo","Nubank","Inter","C6 Bank","PagBank","Banco do Brasil","Outro"];
 
-  const load = ()=>{ api("/cards").then(setCards).catch(e=>setErr(e.message)).finally(()=>setLoading(false)); };
-  useEffect(load,[]);
+  const load = useCallback(()=>{
+    setLoading(true);
+    Promise.all([
+      api("/cards"),
+      api(`/cards/invoice-status?period=${periodo}`),
+    ]).then(([c,s])=>{ setCards(c); setStatuses(s); setErr(""); })
+      .catch(e=>setErr(e.message)).finally(()=>setLoading(false));
+  },[periodo]);
+
+  useEffect(()=>{ load(); },[load]);
+
+  const togglePaid = async (cardId) => {
+    try {
+      await api(`/cards/invoice-status/${cardId}?period=${periodo}`,{method:"POST"});
+      load();
+    } catch(e){ setErr(e.message); }
+  };
 
   const save = async () => {
     try {
@@ -24,18 +41,24 @@ export default function CardsTab({api}) {
     } catch(e){ setErr(e.message); }
   };
 
-  const remove = async (id)=>{ try{ await api(`/cards/${id}`,{method:"DELETE"}); load(); }catch(e){setErr(e.message);} };
+  const remove = async (id) => {
+    try { await api(`/cards/${id}`,{method:"DELETE"}); load(); } catch(e){ setErr(e.message); }
+  };
 
   return (
     <div style={{fontFamily:"'Outfit','Segoe UI',sans-serif"}}>
-      <div style={{marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{marginBottom:20,display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
         <div>
           <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Cartões</h2>
-          <p style={{color:C.muted,fontSize:13,margin:"4px 0 0"}}>Gerencie seus cartões de crédito e débito</p>
+          <p style={{color:C.muted,fontSize:13,margin:"4px 0 0"}}>Gerencie seus cartões e faturas mensais</p>
         </div>
-        <button onClick={()=>setModal(true)} style={{...btn(C.accent,{boxShadow:"0 4px 14px rgba(37,99,235,0.35)"})}}>
-          <Plus size={15}/>Novo Cartão
-        </button>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <input type="month" value={periodo} onChange={e=>setPeriodo(e.target.value)}
+            style={{...selSt,padding:"7px 10px"}}/>
+          <button onClick={()=>setModal(true)} style={{...btn(C.accent,{boxShadow:"0 4px 14px rgba(37,99,235,0.35)"})}}>
+            <Plus size={15}/>Novo Cartão
+          </button>
+        </div>
       </div>
 
       {err&&<div style={{marginBottom:12}}><ErrMsg msg={err}/></div>}
@@ -49,8 +72,11 @@ export default function CardsTab({api}) {
               <p style={{color:C.muted,margin:0,fontSize:14}}>Nenhum cartão cadastrado. Adicione um para associar às despesas.</p>
             </div>
           )}
-          {cards.map(c=>(
-            <div key={c.id} style={{...card({borderLeft:`4px solid ${c.color}`}),flex:"0 0 290px",transition:"transform 0.15s ease, box-shadow 0.15s ease"}}
+          {cards.map(c=>{
+            const st = statuses.find(s=>s.card_id===c.id);
+            const paid = st?.paid||false;
+            return (
+            <div key={c.id} style={{...card({borderLeft:`4px solid ${c.color}`}),flex:"0 0 300px",transition:"transform 0.15s ease, box-shadow 0.15s ease"}}
               onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";e.currentTarget.style.boxShadow=`0 8px 24px rgba(0,0,0,0.3)`;}}
               onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="";}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
@@ -65,13 +91,29 @@ export default function CardsTab({api}) {
                   <Trash2 size={14}/>
                 </button>
               </div>
-              <div style={{display:"flex",gap:16}}>
+              <div style={{display:"flex",gap:16,marginBottom:14}}>
                 {c.credit_limit>0&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Limite</div><div style={{fontSize:13,fontWeight:700,color:C.text,fontFamily:"'Space Mono',monospace"}}>{fmt(c.credit_limit)}</div></div>}
                 {c.closing_day&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Fechamento</div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Dia {c.closing_day}</div></div>}
                 {c.due_day&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Vencimento</div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Dia {c.due_day}</div></div>}
               </div>
+              {/* Baixa de fatura */}
+              <div style={{borderTop:`1px solid ${C.border}`,paddingTop:12}}>
+                <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:8}}>
+                  Fatura {periodo.split("-")[1]}/{periodo.split("-")[0]}
+                </div>
+                <button onClick={()=>togglePaid(c.id)}
+                  style={{width:"100%",padding:"9px 12px",borderRadius:8,border:`1px solid ${paid?C.green+"55":C.border}`,
+                    background:paid?C.greenSft:"transparent",cursor:"pointer",
+                    display:"flex",alignItems:"center",justifyContent:"center",gap:7,
+                    color:paid?C.green:C.muted,fontSize:12,fontWeight:600,transition:"all 0.2s ease"}}>
+                  {paid
+                    ? <><CheckCircle2 size={14}/> Fatura Paga</>
+                    : <><Clock size={14}/> Marcar como Paga</>}
+                </button>
+              </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
