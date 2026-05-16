@@ -11,15 +11,16 @@ export async function apiFetch(path, options={}, token=null) {
       if (!res.ok) {
         const err = await res.json().catch(()=>({detail:res.statusText}));
         const msg = err.detail || "Erro desconhecido";
-        if (res.status === 401) throw new Error("E-mail ou senha incorretos.");
-        if (res.status === 400) throw new Error(msg);
+        if (res.status === 401) throw Object.assign(new Error("E-mail ou senha incorretos."), {_noRetry:true});
+        // 4xx errors are client errors (not found, validation, etc.) — don't retry
+        if (res.status >= 400 && res.status < 500) throw Object.assign(new Error(msg), {_noRetry:true});
         throw new Error(msg);
       }
       if (res.status === 204 || res.headers.get("content-length") === "0") return null;
       return res.json();
     } catch(e) {
       lastError = e;
-      if (e.message.includes("incorretos") || e.message.includes("cadastrado")) throw e;
+      if (e._noRetry) throw e;
       if (attempt < MAX_RETRIES - 1) await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
     }
   }

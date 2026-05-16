@@ -106,7 +106,7 @@ class TransactionOut(BaseModel):
     installment_current: Optional[int]
     installment_total: Optional[int]
     installment_group: Optional[str]
-    source: str
+    source: Optional[str] = "manual"
     notes: Optional[str]
     category: Optional[CategoryOut]
     card: Optional[CardOut]

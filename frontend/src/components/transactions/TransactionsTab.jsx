@@ -177,6 +177,7 @@ export default function TransactionsTab({api, user}) {
   const [search,    setSearch]    = useState("");
   const [fType,     setFType]     = useState("all");
   const [delId,     setDelId]     = useState(null);
+  const [deleting,  setDeleting]  = useState(false);
   const [periodo,   setPeriodo]   = useState(new Date().toISOString().slice(0,7));
 
   const load = useCallback(()=>{
@@ -192,8 +193,10 @@ export default function TransactionsTab({api, user}) {
   useEffect(()=>{ load(); },[load]);
 
   const handleDelete = async (id) => {
+    setDeleting(true);
     try { await api(`/transactions/${id}`,{method:"DELETE"}); setDelId(null); load(); }
     catch(e){ setErr(e.message); }
+    finally{ setDeleting(false); }
   };
 
   const rec = txList.filter(t=>t.type==="R").reduce((a,t)=>a+t.amount,0);
@@ -288,8 +291,12 @@ export default function TransactionsTab({api, user}) {
                   <td style={{padding:"9px 8px"}}>
                     {delId===t.id?(
                       <div style={{display:"flex",gap:4}}>
-                        <button onClick={()=>handleDelete(t.id)} style={{padding:"3px 8px",borderRadius:5,border:"none",background:C.red,color:"#fff",fontSize:10,cursor:"pointer",fontWeight:600}}>Sim</button>
-                        <button onClick={()=>setDelId(null)} style={{padding:"3px 8px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:10,cursor:"pointer"}}>Não</button>
+                        <button onClick={()=>handleDelete(t.id)} disabled={deleting}
+                          style={{padding:"3px 8px",borderRadius:5,border:"none",background:deleting?C.faint:C.red,color:"#fff",fontSize:10,cursor:deleting?"not-allowed":"pointer",fontWeight:600}}>
+                          {deleting?"...":"Sim"}
+                        </button>
+                        <button onClick={()=>setDelId(null)} disabled={deleting}
+                          style={{padding:"3px 8px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:10,cursor:deleting?"not-allowed":"pointer"}}>Não</button>
                       </div>
                     ):(
                       <button onClick={()=>setDelId(t.id)} style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:4,display:"flex",borderRadius:5,transition:"color 0.15s ease"}}
