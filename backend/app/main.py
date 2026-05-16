@@ -104,6 +104,7 @@ def _seed_admin():
     admin_login    = os.getenv("ADMIN_LOGIN", "").strip()
     admin_password = os.getenv("ADMIN_PASSWORD", "").strip()
     if not admin_login or not admin_password:
+        logger.warning("ADMIN_LOGIN/ADMIN_PASSWORD not set — skipping seed")
         return
     from app.database import SessionLocal
     from app import models, auth as auth_module
@@ -111,6 +112,7 @@ def _seed_admin():
     try:
         existing = db.query(models.User).filter(models.User.email == admin_login).first()
         if existing:
+            logger.info("Admin '%s' already exists — skipping seed", admin_login)
             return
         admin = models.User(
             name="Administrador",
@@ -121,7 +123,9 @@ def _seed_admin():
         )
         db.add(admin)
         db.commit()
-    except Exception:
+        logger.warning("Admin '%s' created successfully", admin_login)
+    except Exception as e:
+        logger.error("Failed to seed admin: %s", e)
         db.rollback()
     finally:
         db.close()
