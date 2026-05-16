@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { LayoutDashboard, CreditCard, Upload, Tag, BarChart2, LogOut, Users, UserCog, FileText } from "lucide-react";
-import { C } from "../../styles/theme";
+import { C, IS_ROTAS_CAFE, APP_NAME } from "../../styles/theme";
 import FinanceControlLogo from "../logos/FinanceControlLogo";
+import RotasCafeLogo from "../logos/RotasCafeLogo";
+const Logo = IS_ROTAS_CAFE ? RotasCafeLogo : FinanceControlLogo;
 
 export default function Sidebar({active, set, user, onLogout}) {
   const isAdmin = user?.role === "admin";
@@ -59,11 +61,11 @@ export default function Sidebar({active, set, user, onLogout}) {
       position:"relative",overflow:"hidden"}}>
       <div style={{padding:"22px 18px 14px",borderBottom:`1px solid ${C.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{filter:`drop-shadow(0 0 6px rgba(75,122,40,0.4))`}}>
-            <FinanceControlLogo size={34}/>
+          <div style={{filter:`drop-shadow(0 0 6px ${C.accent}66)`}}>
+            <Logo size={34}/>
           </div>
           <div>
-            <div style={{fontSize:13,fontWeight:600,color:C.text,fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</div>
+            <div style={{fontSize:13,fontWeight:600,color:C.text,fontFamily:"'Lora','Georgia',serif"}}>{APP_NAME}</div>
             <div style={{fontSize:10,color:C.faint}}>v2.6 · IFRS</div>
           </div>
         </div>

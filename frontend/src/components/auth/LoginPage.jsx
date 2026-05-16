@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
-import { C, card, inpSt, btn } from "../../styles/theme";
+import { C, card, inpSt, btn, IS_ROTAS_CAFE, APP_NAME, APP_SUB } from "../../styles/theme";
 import { API } from "../../api/client";
 import FinanceControlLogo from "../logos/FinanceControlLogo";
+import RotasCafeLogo from "../logos/RotasCafeLogo";
+const Logo = IS_ROTAS_CAFE ? RotasCafeLogo : FinanceControlLogo;
 
 export default function LoginPage({onLogin}) {
   const [mode,  setMode]  = useState("login"); // "login" | "register" | "forgot"
@@ -48,18 +50,18 @@ export default function LoginPage({onLogin}) {
 
   return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
-      background:`radial-gradient(ellipse 90% 55% at 50% 0%, rgba(75,122,40,0.18) 0%, rgba(42,173,96,0.06) 40%, ${C.bg} 70%)`,
+      background:`radial-gradient(ellipse 90% 55% at 50% 0%, ${C.accent}30 0%, ${C.accent}0a 40%, ${C.bg} 70%)`,
       fontFamily:"'Outfit','Segoe UI',sans-serif",position:"relative",overflow:"hidden"}}>
       <div style={{...card({background:C.surface,
         boxShadow:"0 0 0 1px rgba(75,122,40,0.12), 0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.4)"}),
         width:"100%",maxWidth:400,padding:"36px 28px",margin:"16px"}}>
 
         <div style={{textAlign:"center",marginBottom:30}}>
-          <div style={{marginBottom:16,filter:`drop-shadow(0 0 16px rgba(75,122,40,0.5)) drop-shadow(0 4px 10px rgba(0,0,0,0.5))`}}>
-            <FinanceControlLogo size={64}/>
+          <div style={{marginBottom:16,filter:`drop-shadow(0 0 16px ${C.accent}80) drop-shadow(0 4px 10px rgba(0,0,0,0.5))`}}>
+            <Logo size={64}/>
           </div>
-          <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</h1>
-          <p style={{color:C.muted,fontSize:12,marginTop:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>Gestão Financeira · IFRS</p>
+          <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>{APP_NAME}</h1>
+          <p style={{color:C.muted,fontSize:12,marginTop:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>{APP_SUB}</p>
           {!serverReady && (
             <div style={{display:"flex",alignItems:"center",gap:6,justifyContent:"center",marginTop:12,
               padding:"7px 14px",borderRadius:8,background:C.goldSft,border:`1px solid ${C.gold}33`}}>

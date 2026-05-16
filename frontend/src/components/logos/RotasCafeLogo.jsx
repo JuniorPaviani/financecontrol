@@ -1,27 +1,21 @@
 export default function RotasCafeLogo({ size = 48 }) {
-  const cream = "#F2E8D5";
-  const bg = "#9B2335";
+  const maroon = "#8B1A1A";
+  const cream  = "#F0EAD0";
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none"
-         xmlns="http://www.w3.org/2000/svg" aria-label="Logo FinanceControl">
-      <circle cx="50" cy="50" r="50" fill={bg}/>
-
-      {/* eixos */}
-      <line x1="15" y1="78" x2="87" y2="78" stroke={cream} strokeWidth="2" strokeLinecap="round" opacity="0.45"/>
-      <line x1="15" y1="20" x2="15" y2="79" stroke={cream} strokeWidth="2" strokeLinecap="round" opacity="0.45"/>
-
-      {/* área sob a linha */}
-      <polygon points="22,68 40,52 60,40 78,25 78,78 22,78" fill={cream} opacity="0.12"/>
-
-      {/* linha do gráfico */}
-      <polyline points="22,68 40,52 60,40 78,25"
-                stroke={cream} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-
-      {/* pontos */}
-      <circle cx="22" cy="68" r="4.5" fill={bg} stroke={cream} strokeWidth="3"/>
-      <circle cx="40" cy="52" r="4.5" fill={bg} stroke={cream} strokeWidth="3"/>
-      <circle cx="60" cy="40" r="4.5" fill={bg} stroke={cream} strokeWidth="3"/>
-      <circle cx="78" cy="25" r="4.5" fill={bg} stroke={cream} strokeWidth="3"/>
+         xmlns="http://www.w3.org/2000/svg" aria-label="Logo Rotas Café">
+      <circle cx="50" cy="50" r="50" fill={cream}/>
+      {/* steam */}
+      <path d="M36 32 C33 26 37 20 34 14" stroke={maroon} strokeWidth="3.5" strokeLinecap="round" fill="none"/>
+      <path d="M50 30 C47 23 51 16 48 9"  stroke={maroon} strokeWidth="3.5" strokeLinecap="round" fill="none"/>
+      {/* cup outer */}
+      <path d="M18 40 L22 78 Q50 86 78 78 L82 40 Z" fill={maroon}/>
+      {/* cup inner / cream fill */}
+      <path d="M25 44 L28 74 Q50 80 72 74 L75 44 Z" fill={cream}/>
+      {/* coffee surface inside */}
+      <ellipse cx="50" cy="52" rx="22" ry="7" fill={maroon} opacity="0.55"/>
+      {/* handle */}
+      <path d="M82 48 Q96 48 96 60 Q96 72 82 72" stroke={maroon} strokeWidth="7" strokeLinecap="round" fill="none"/>
     </svg>
   );
 }
