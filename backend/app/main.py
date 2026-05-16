@@ -46,6 +46,25 @@ def _auto_migrate():
                     conn.execute(text("ALTER TABLE users ADD COLUMN can_view_receitas BOOLEAN DEFAULT 0"))
                 if "force_password_change" not in cols:
                     conn.execute(text("ALTER TABLE users ADD COLUMN force_password_change BOOLEAN DEFAULT 0"))
+                # transactions new columns
+                result2 = conn.execute(text("PRAGMA table_info(transactions)"))
+                tx_cols = {row[1] for row in result2.fetchall()}
+                if "payment_method" not in tx_cols:
+                    conn.execute(text("ALTER TABLE transactions ADD COLUMN payment_method VARCHAR(20) DEFAULT 'cartao'"))
+                if "paid" not in tx_cols:
+                    conn.execute(text("ALTER TABLE transactions ADD COLUMN paid BOOLEAN DEFAULT 0"))
+                # card_invoice_status table
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS card_invoice_status (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL REFERENCES users(id),
+                        card_id INTEGER NOT NULL REFERENCES cards(id),
+                        period VARCHAR(7) NOT NULL,
+                        paid BOOLEAN DEFAULT 0,
+                        paid_at DATETIME,
+                        alerted_at DATETIME
+                    )
+                """))
             else:
                 conn.execute(text(
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'admin'"
@@ -59,6 +78,23 @@ def _auto_migrate():
                 conn.execute(text(
                     "ALTER TABLE users ADD COLUMN IF NOT EXISTS force_password_change BOOLEAN DEFAULT FALSE"
                 ))
+                conn.execute(text(
+                    "ALTER TABLE transactions ADD COLUMN IF NOT EXISTS payment_method VARCHAR(20) DEFAULT 'cartao'"
+                ))
+                conn.execute(text(
+                    "ALTER TABLE transactions ADD COLUMN IF NOT EXISTS paid BOOLEAN DEFAULT FALSE"
+                ))
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS card_invoice_status (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL REFERENCES users(id),
+                        card_id INTEGER NOT NULL REFERENCES cards(id),
+                        period VARCHAR(7) NOT NULL,
+                        paid BOOLEAN DEFAULT FALSE,
+                        paid_at TIMESTAMP,
+                        alerted_at TIMESTAMP
+                    )
+                """))
     except Exception:
         pass
 
