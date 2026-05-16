@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
 import { C, card, inpSt, btn } from "../../styles/theme";
 import { API } from "../../api/client";
-import FinanceControlLogo from "../logos/FinanceControlLogo";
 
 export default function LoginPage({onLogin}) {
   const [mode,  setMode]  = useState("login"); // "login" | "register" | "forgot"
@@ -48,18 +47,23 @@ export default function LoginPage({onLogin}) {
 
   return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",
-      background:`radial-gradient(ellipse 90% 55% at 50% 0%, rgba(75,122,40,0.18) 0%, rgba(42,173,96,0.06) 40%, ${C.bg} 70%)`,
+      background:`radial-gradient(ellipse 90% 55% at 50% 0%, rgba(155,35,53,0.22) 0%, rgba(100,20,30,0.08) 40%, ${C.bg} 70%)`,
       fontFamily:"'Outfit','Segoe UI',sans-serif",position:"relative",overflow:"hidden"}}>
       <div style={{...card({background:C.surface,
         boxShadow:"0 0 0 1px rgba(75,122,40,0.12), 0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.4)"}),
         width:"100%",maxWidth:400,padding:"36px 28px",margin:"16px"}}>
 
         <div style={{textAlign:"center",marginBottom:30}}>
-          <div style={{marginBottom:16,filter:`drop-shadow(0 0 16px rgba(75,122,40,0.5)) drop-shadow(0 4px 10px rgba(0,0,0,0.5))`}}>
-            <FinanceControlLogo size={64}/>
+          <div style={{marginBottom:16,display:"flex",justifyContent:"center"}}>
+            <img
+              src="/rotas-cafe-logo.jpg"
+              alt="Rotas Café"
+              style={{width:100,height:100,borderRadius:"50%",objectFit:"cover",
+                boxShadow:"0 0 0 3px rgba(155,35,53,0.3), 0 8px 24px rgba(0,0,0,0.5)"}}
+            />
           </div>
-          <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>FinanceControl</h1>
-          <p style={{color:C.muted,fontSize:12,marginTop:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>Gestão Financeira · IFRS</p>
+          <h1 style={{fontSize:22,fontWeight:700,color:C.text,margin:0,letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Rotas Café</h1>
+          <p style={{color:C.muted,fontSize:12,marginTop:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>Sistema de Gestão Financeira</p>
           {!serverReady && (
             <div style={{display:"flex",alignItems:"center",gap:6,justifyContent:"center",marginTop:12,
               padding:"7px 14px",borderRadius:8,background:C.goldSft,border:`1px solid ${C.gold}33`}}>
@@ -73,7 +77,7 @@ export default function LoginPage({onLogin}) {
           <div style={{display:"flex",background:C.card,borderRadius:9,padding:3,marginBottom:24,border:`1px solid ${C.border}`}}>
             {[["login","Entrar"],["register","Criar conta"]].map(([v,l])=>(
               <button key={v} onClick={()=>{setMode(v);setErr("");}} style={{flex:1,padding:"8px",borderRadius:7,border:"none",
-                cursor:"pointer",background:mode===v?C.accent:"transparent",
+                cursor:"pointer",background:mode===v?"#9B2335":"transparent",
                 color:mode===v?"#fff":C.muted,fontSize:13,fontWeight:600,
                 transition:"all 0.2s ease"}}>
                 {l}
@@ -160,8 +164,8 @@ export default function LoginPage({onLogin}) {
         )}
 
         {!forgotSent && (
-          <button onClick={handle} disabled={loading} style={{...btn(loading?C.faint:C.accent,{width:"100%",padding:"12px",fontSize:14,
-            boxShadow:loading?"none":`0 4px 14px rgba(155,35,53,0.35)`})}}>
+          <button onClick={handle} disabled={loading} style={{...btn(loading?C.faint:"#9B2335",{width:"100%",padding:"12px",fontSize:14,
+            boxShadow:loading?"none":`0 4px 14px rgba(155,35,53,0.45)`})}}>
             {loading?<><Loader2 size={15} style={{animation:"spin .8s linear infinite"}}/>Aguardando...</>:
              mode==="login"?"Entrar no Sistema":
              mode==="register"?"Criar Conta":
