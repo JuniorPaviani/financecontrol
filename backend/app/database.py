@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./financecontrol.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./financecontrol.db").strip()
 
 # Render uses "postgres://" but SQLAlchemy needs "postgresql://"
 if DATABASE_URL.startswith("postgres://"):
