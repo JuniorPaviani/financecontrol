@@ -80,7 +80,7 @@ export default function FaturaTab({ api }) {
     } catch (e) {
       clearInterval(timer);
       setImportErr(e.message);
-      setImportStep(null);
+      setImportStep("error");
     }
   };
 
@@ -272,6 +272,23 @@ export default function FaturaTab({ api }) {
             </table>
           </div>
         </>
+      )}
+
+      {/* ── Import error (outside modal) ───────────────────────── */}
+      {importStep === "error" && (
+        <div style={{ ...card({ background: C.surface, marginBottom: 16, border: `1px solid ${C.red}44` }),
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: C.red, marginBottom: 4 }}>
+              Erro ao processar o PDF
+            </div>
+            <div style={{ fontSize: 12, color: C.muted }}>{importErr}</div>
+          </div>
+          <button onClick={() => { setImportStep(null); setImportErr(""); fileInputRef.current?.click(); }}
+            style={{ ...btn(C.accent, { padding: "8px 14px", fontSize: 12 }) }}>
+            <Upload size={12} />Tentar novamente
+          </button>
+        </div>
       )}
 
       {/* ── Import modal ─────────────────────────────────────────── */}
