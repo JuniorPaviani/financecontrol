@@ -7,7 +7,6 @@ class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: Optional[str] = "admin"
 
 
 class UserLogin(BaseModel):
@@ -175,6 +174,33 @@ class ResetPassword(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     new_password: str
+
+
+class TransactionUpdate(BaseModel):
+    type: Optional[str] = None
+    date: Optional[date] = None
+    description: Optional[str] = None
+    supplier: Optional[str] = None
+    amount: Optional[float] = None
+    category_id: Optional[int] = None
+    card_id: Optional[int] = None
+    notes: Optional[str] = None
+    payment_method: Optional[str] = None
+    paid: Optional[bool] = None
+
+    @field_validator("type")
+    @classmethod
+    def validate_type(cls, v):
+        if v is not None and v not in ("D", "R"):
+            raise ValueError("type must be D or R")
+        return v
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("amount must be positive")
+        return v
 
 
 class EmployeeCreate(BaseModel):

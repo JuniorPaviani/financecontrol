@@ -136,9 +136,17 @@ app = FastAPI(
     redoc_url=None if IS_PROD else "/redoc",
 )
 
+ALLOWED_ORIGINS = (
+    ["*"] if not IS_PROD
+    else [
+        os.getenv("FRONTEND_URL", "https://financecontrol-kiyl.onrender.com"),
+        "https://rotas-cafe.onrender.com",
+    ]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

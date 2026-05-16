@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Search, X, Filter, Trash2, CheckCircle2, Loader2 } from "lucide-react";
+import { Plus, Search, X, Filter, Trash2, CheckCircle2, Loader2, Pencil } from "lucide-react";
 import { C, fmt, fmtD, card, pill, inpSt, selSt, btn } from "../../styles/theme";
 import Loading from "../shared/Loading";
 import ErrMsg from "../shared/ErrMsg";
@@ -13,8 +13,22 @@ const PAYMENT_METHODS = [
 
 const EMPTY = {date:"",desc:"",supplier:"",amount:"",type:"D",cat_id:"",card_id:"",inst:"",instTotal:"",payment_method:"cartao"};
 
-function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
-  const [f,    setF]    = useState({...EMPTY, date: new Date().toISOString().slice(0,10)});
+function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial}) {
+  const isEdit = !!initial;
+  const [f,    setF]    = useState(() => {
+    if (initial) return {
+      date: initial.date,
+      desc: initial.description,
+      supplier: initial.supplier || "",
+      amount: String(initial.amount),
+      type: initial.type,
+      cat_id: initial.category?.id ? String(initial.category.id) : "",
+      card_id: initial.card?.id ? String(initial.card.id) : "",
+      inst: initial.installment_current ? `${initial.installment_current}/${initial.installment_total}` : "",
+      payment_method: initial.payment_method || "cartao",
+    };
+    return {...EMPTY, date: new Date().toISOString().slice(0,10)};
+  });
   const [err,  setErr]  = useState({});
   const [saved,setSaved]= useState(false);
   const [loading,setLoading]=useState(false);
@@ -36,14 +50,24 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
     try {
       let inst_cur=null, inst_tot=null;
       if(f.inst){ [inst_cur,inst_tot]=f.inst.split("/").map(Number); }
-      await api("/transactions",{method:"POST",body:JSON.stringify({
-        type:f.type, date:f.date, description:f.desc.toUpperCase(),
-        supplier:f.supplier, amount:Number(f.amount),
-        category_id:f.cat_id?Number(f.cat_id):null,
-        card_id:f.payment_method==="cartao"&&f.card_id?Number(f.card_id):null,
-        installment_current:inst_cur, installment_total:inst_tot,
-        payment_method:f.payment_method,
-      })});
+      if (isEdit) {
+        await api(`/transactions/${initial.id}`, {method:"PUT", body:JSON.stringify({
+          type:f.type, date:f.date, description:f.desc.toUpperCase(),
+          supplier:f.supplier, amount:Number(f.amount),
+          category_id:f.cat_id?Number(f.cat_id):null,
+          card_id:f.payment_method==="cartao"&&f.card_id?Number(f.card_id):null,
+          payment_method:f.payment_method,
+        })});
+      } else {
+        await api("/transactions",{method:"POST",body:JSON.stringify({
+          type:f.type, date:f.date, description:f.desc.toUpperCase(),
+          supplier:f.supplier, amount:Number(f.amount),
+          category_id:f.cat_id?Number(f.cat_id):null,
+          card_id:f.payment_method==="cartao"&&f.card_id?Number(f.card_id):null,
+          installment_current:inst_cur, installment_total:inst_tot,
+          payment_method:f.payment_method,
+        })});
+      }
       setSaved(true);
       setTimeout(()=>{ setSaved(false); onSaved(); onClose(); }, 1400);
     } catch(e){ setErr({api:e.message}); }
@@ -59,7 +83,7 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
         width:"100%",maxWidth:500,maxHeight:"92vh",overflowY:"auto"}}>
 
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-          <h3 style={{margin:0,fontSize:16,fontWeight:700,color:C.text,letterSpacing:"-0.01em"}}>Novo Lançamento</h3>
+          <h3 style={{margin:0,fontSize:16,fontWeight:700,color:C.text,letterSpacing:"-0.01em"}}>{isEdit ? "Editar Lançamento" : "Novo Lançamento"}</h3>
           <button onClick={onClose} style={{background:C.card,border:`1px solid ${C.border}`,cursor:"pointer",color:C.muted,width:30,height:30,borderRadius:7,display:"flex",alignItems:"center",justifyContent:"center",transition:"color 0.15s ease"}}>
             <X size={15}/>
           </button>
@@ -186,7 +210,7 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita}) {
             <button onClick={handle} disabled={loading} style={{...btn(f.type==="D"?C.red:C.green,{flex:2,padding:"11px",
               boxShadow:`0 4px 14px ${(f.type==="D"?C.red:C.green)}33`})}}>
               {loading?<Loader2 size={14} style={{animation:"spin .8s linear infinite"}}/>:<CheckCircle2 size={14}/>}
-              {f.type==="D"?"Registrar Despesa":"Registrar Receita"}
+              {isEdit ? "Salvar Alterações" : f.type==="D"?"Registrar Despesa":"Registrar Receita"}
             </button>
           </div>
         )}
@@ -203,6 +227,7 @@ export default function TransactionsTab({api, user}) {
   const [loading,   setLoading]   = useState(true);
   const [err,       setErr]       = useState("");
   const [modal,     setModal]     = useState(false);
+  const [editTx,    setEditTx]    = useState(null);
   const [search,    setSearch]    = useState("");
   const [fType,     setFType]     = useState("all");
   const [delId,     setDelId]     = useState(null);
@@ -326,22 +351,33 @@ export default function TransactionsTab({api, user}) {
                     })()}
                   </td>
                   <td style={{padding:"9px 8px"}}>
-                    {delId===t.id?(
-                      <div style={{display:"flex",gap:4}}>
-                        <button onClick={()=>handleDelete(t.id)} disabled={deleting}
-                          style={{padding:"3px 8px",borderRadius:5,border:"none",background:deleting?C.faint:C.red,color:"#fff",fontSize:10,cursor:deleting?"not-allowed":"pointer",fontWeight:600}}>
-                          {deleting?"...":"Sim"}
-                        </button>
-                        <button onClick={()=>setDelId(null)} disabled={deleting}
-                          style={{padding:"3px 8px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:10,cursor:deleting?"not-allowed":"pointer"}}>Não</button>
-                      </div>
-                    ):(
-                      <button onClick={()=>setDelId(t.id)} style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:4,display:"flex",borderRadius:5,transition:"color 0.15s ease"}}
-                        onMouseEnter={e=>e.currentTarget.style.color=C.red}
-                        onMouseLeave={e=>e.currentTarget.style.color=C.faint}>
-                        <Trash2 size={13}/>
-                      </button>
-                    )}
+                    <div style={{display:"flex",gap:4,alignItems:"center"}}>
+                      {delId===t.id?(
+                        <>
+                          <button onClick={()=>handleDelete(t.id)} disabled={deleting}
+                            style={{padding:"3px 8px",borderRadius:5,border:"none",background:deleting?C.faint:C.red,color:"#fff",fontSize:10,cursor:deleting?"not-allowed":"pointer",fontWeight:600}}>
+                            {deleting?"...":"Sim"}
+                          </button>
+                          <button onClick={()=>setDelId(null)} disabled={deleting}
+                            style={{padding:"3px 8px",borderRadius:5,border:`1px solid ${C.border}`,background:"transparent",color:C.muted,fontSize:10,cursor:deleting?"not-allowed":"pointer"}}>Não</button>
+                        </>
+                      ):(
+                        <>
+                          <button onClick={()=>setEditTx(t)} title="Editar"
+                            style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:4,display:"flex",borderRadius:5,transition:"color 0.15s ease"}}
+                            onMouseEnter={e=>e.currentTarget.style.color=C.accent}
+                            onMouseLeave={e=>e.currentTarget.style.color=C.faint}>
+                            <Pencil size={13}/>
+                          </button>
+                          <button onClick={()=>setDelId(t.id)} title="Excluir"
+                            style={{background:"none",border:"none",cursor:"pointer",color:C.faint,padding:4,display:"flex",borderRadius:5,transition:"color 0.15s ease"}}
+                            onMouseEnter={e=>e.currentTarget.style.color=C.red}
+                            onMouseLeave={e=>e.currentTarget.style.color=C.faint}>
+                            <Trash2 size={13}/>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -351,6 +387,7 @@ export default function TransactionsTab({api, user}) {
       )}
 
       {modal && <TxModal onClose={()=>setModal(false)} onSaved={load} api={api} categories={categories} cards={cards} canReceita={canReceita}/>}
+      {editTx && <TxModal onClose={()=>setEditTx(null)} onSaved={load} api={api} categories={categories} cards={cards} canReceita={canReceita} initial={editTx}/>}
     </div>
   );
 }

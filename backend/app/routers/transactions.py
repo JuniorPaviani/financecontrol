@@ -107,6 +107,43 @@ def get_transaction(
     return tx
 
 
+@router.put("/{tx_id}", response_model=schemas.TransactionOut)
+def update_transaction(
+    tx_id: int,
+    data: schemas.TransactionUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    tx = db.query(models.Transaction).filter(
+        models.Transaction.id == tx_id,
+        models.Transaction.user_id == current_user.id
+    ).first()
+    if not tx:
+        raise HTTPException(404, "Transação não encontrada")
+
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(tx, field, value)
+
+    if "date" in update_data and data.date:
+        tx.periodo_referencia = _periodo(data.date)
+
+    if "payment_method" in update_data:
+        pm = (data.payment_method or "cartao").lower()
+        tx.payment_method = pm
+        if pm in ("pix", "dinheiro"):
+            tx.paid = True
+        if pm != "cartao":
+            tx.card_id = None
+
+    if "amount" in update_data and data.amount:
+        tx.amount = round(data.amount, 2)
+
+    db.commit()
+    db.refresh(tx)
+    return tx
+
+
 @router.delete("/{tx_id}", status_code=204)
 def delete_transaction(
     tx_id: int,

@@ -23,6 +23,7 @@ Sistema de Gestao Financeira com classificacao IFRS, leitor de faturas PDF e das
 | Sam's Club | OK |
 | Sicredi | OK |
 | Riachuelo | OK |
+| Stone | OK |
 
 ## Instalacao Local (Windows)
 

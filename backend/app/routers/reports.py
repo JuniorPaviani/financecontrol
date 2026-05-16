@@ -26,7 +26,6 @@ def monthly_summary(
         .filter(models.Transaction.user_id == current_user.id)
         .group_by(models.Transaction.periodo_referencia, models.Transaction.type)
         .order_by(models.Transaction.periodo_referencia.desc())
-        .limit(months * 2)
         .all()
     )
 
@@ -42,7 +41,7 @@ def monthly_summary(
             periods[p]["total_despesas"] = round(row.total, 2)
 
     result = []
-    for p, d in sorted(periods.items(), reverse=True):
+    for p, d in sorted(periods.items(), reverse=True)[:months]:
         d["saldo"] = round(d["total_receitas"] - d["total_despesas"], 2)
         result.append(schemas.MonthSummary(**d))
     return result
