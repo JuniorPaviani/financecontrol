@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Pencil, Trash2, X, CheckCircle2, Loader2 } from "lucide-react";
-import { C, card, pill, inpSt, selSt, btn } from "../../styles/theme";
+import { C, card, pill, inpSt, selSt, btn, CAT_TITLE, GROUP_LABEL } from "../../styles/theme";
 import Loading from "../shared/Loading";
 import ErrMsg from "../shared/ErrMsg";
 
@@ -72,7 +72,7 @@ function CatModal({ onClose, onSaved, api, initial }) {
         {/* Grupo IFRS */}
         <div style={{marginBottom:14}}>
           <label style={{display:"block",fontSize:11,fontWeight:600,color:err.ifrs_group?C.red:C.muted,
-            marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Grupo IFRS *</label>
+            marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>{GROUP_LABEL} *</label>
           <select value={f.ifrs_group} onChange={e=>setF({...f,ifrs_group:e.target.value})}
             style={{...selSt,width:"100%",padding:"9px 12px"}}>
             {IFRS_GROUPS.map(g=><option key={g} value={g}>{g}</option>)}
@@ -168,7 +168,7 @@ export default function CategoriesTab({ api }) {
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:22}}>
         <div>
           <h2 style={{fontSize:21,fontWeight:700,color:C.text,margin:"0 0 4px",
-            letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>Categorias IFRS</h2>
+            letterSpacing:"-0.02em",fontFamily:"'Lora','Georgia',serif"}}>{CAT_TITLE}</h2>
           <p style={{color:C.muted,fontSize:13,margin:0}}>
             {cats.length} categori{cats.length===1?"a":"as"} · classificação baseada nas Normas Internacionais de Contabilidade
           </p>

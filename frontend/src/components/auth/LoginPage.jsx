@@ -53,7 +53,7 @@ export default function LoginPage({onLogin}) {
       background:`radial-gradient(ellipse 90% 55% at 50% 0%, ${C.accent}30 0%, ${C.accent}0a 40%, ${C.bg} 70%)`,
       fontFamily:"'Outfit','Segoe UI',sans-serif",position:"relative",overflow:"hidden"}}>
       <div style={{...card({background:C.surface,
-        boxShadow:"0 0 0 1px rgba(75,122,40,0.12), 0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.4)"}),
+        boxShadow:`0 0 0 1px ${C.accent}1f, 0 32px 80px rgba(0,0,0,0.7), 0 8px 24px rgba(0,0,0,0.4)`}),
         width:"100%",maxWidth:400,padding:"36px 28px",margin:"16px"}}>
 
         <div style={{textAlign:"center",marginBottom:30}}>

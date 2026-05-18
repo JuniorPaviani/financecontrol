@@ -1,7 +1,10 @@
 const BRAND = import.meta.env.VITE_BRAND || "financecontrol";
 export const IS_ROTAS_CAFE = BRAND === "rotas-cafe";
-export const APP_NAME = IS_ROTAS_CAFE ? "Rotas Café" : "FinanceControl";
-export const APP_SUB  = IS_ROTAS_CAFE ? "Gestão Financeira · Café" : "Gestão Financeira · IFRS";
+export const APP_NAME     = IS_ROTAS_CAFE ? "Rotas Café"          : "FinanceControl";
+export const APP_SUB      = IS_ROTAS_CAFE ? "Gestão Financeira · Café" : "Gestão Financeira · IFRS";
+export const APP_VERSION  = IS_ROTAS_CAFE ? "v2.6 · Café"         : "v2.6 · IFRS";
+export const CAT_TITLE    = IS_ROTAS_CAFE ? "Categorias"           : "Categorias IFRS";
+export const GROUP_LABEL  = IS_ROTAS_CAFE ? "Grupo"                : "Grupo IFRS";
 
 /* Military Green theme — FinanceControl */
 const FC = {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { LayoutDashboard, CreditCard, Upload, Tag, BarChart2, LogOut, Users, UserCog, FileText } from "lucide-react";
-import { C, IS_ROTAS_CAFE, APP_NAME } from "../../styles/theme";
+import { C, IS_ROTAS_CAFE, APP_NAME, APP_VERSION } from "../../styles/theme";
 import FinanceControlLogo from "../logos/FinanceControlLogo";
 import RotasCafeLogo from "../logos/RotasCafeLogo";
 const Logo = IS_ROTAS_CAFE ? RotasCafeLogo : FinanceControlLogo;
@@ -66,7 +66,7 @@ export default function Sidebar({active, set, user, onLogout}) {
           </div>
           <div>
             <div style={{fontSize:13,fontWeight:600,color:C.text,fontFamily:"'Lora','Georgia',serif"}}>{APP_NAME}</div>
-            <div style={{fontSize:10,color:C.faint}}>v2.6 · IFRS</div>
+            <div style={{fontSize:10,color:C.faint}}>{APP_VERSION}</div>
           </div>
         </div>
       </div>
