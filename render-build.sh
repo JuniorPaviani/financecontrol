@@ -18,6 +18,7 @@ npm install
 # 3. Build frontend (set API URL for production)
 echo "[3/4] Building frontend..."
 export VITE_API_URL=/api
+export VITE_BRAND=rotas-cafe
 npm run build
 cd ..
 
