@@ -112,14 +112,18 @@ def _seed_admin():
     try:
         existing = db.query(models.User).filter(models.User.email == admin_login).first()
         if existing:
-            logger.info("Admin '%s' already exists — skipping seed", admin_login)
+            existing.hashed_password = auth_module.hash_password(admin_password)
+            existing.role = "admin"
+            existing.force_password_change = False
+            db.commit()
+            logger.warning("Admin '%s' password updated via seed", admin_login)
             return
         admin = models.User(
             name="Administrador",
             email=admin_login,
             hashed_password=auth_module.hash_password(admin_password),
             role="admin",
-            force_password_change=True,
+            force_password_change=False,
         )
         db.add(admin)
         db.commit()
