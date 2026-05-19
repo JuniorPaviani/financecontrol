@@ -2,6 +2,7 @@ from typing import List
 from datetime import datetime, date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app import models, schemas, auth
 from app.database import get_db
@@ -52,12 +53,22 @@ def list_invoice_status(
             models.CardInvoiceStatus.card_id == c.id,
             models.CardInvoiceStatus.period == period,
         ).first()
+        total_spent = db.query(func.sum(models.Transaction.amount)).filter(
+            models.Transaction.user_id == current_user.id,
+            models.Transaction.card_id == c.id,
+            models.Transaction.periodo_referencia == period,
+            models.Transaction.type == "D",
+        ).scalar() or 0.0
+
         result.append({
             "card_id": c.id,
             "card_name": c.name,
             "bank": c.bank,
             "due_day": c.due_day,
             "color": c.color,
+            "credit_limit": c.credit_limit or 0.0,
+            "total_spent": round(total_spent, 2),
+            "available": round((c.credit_limit or 0.0) - total_spent, 2),
             "period": period,
             "paid": status.paid if status else False,
             "paid_at": status.paid_at.isoformat() if (status and status.paid_at) else None,

@@ -75,6 +75,11 @@ export default function CardsTab({api}) {
           {cards.map(c=>{
             const st = statuses.find(s=>s.card_id===c.id);
             const paid = st?.paid||false;
+            const totalSpent = st?.total_spent||0;
+            const creditLimit = st?.credit_limit||c.credit_limit||0;
+            const available = st?.available ?? (creditLimit - totalSpent);
+            const usedPct = creditLimit>0 ? Math.min(100, (totalSpent/creditLimit)*100) : 0;
+            const barColor = usedPct>90?C.red:usedPct>70?"#F59E0B":C.green;
             return (
             <div key={c.id} style={{...card({borderLeft:`4px solid ${c.color}`}),flex:"0 0 300px",transition:"transform 0.15s ease, box-shadow 0.15s ease"}}
               onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-1px)";e.currentTarget.style.boxShadow=`0 8px 24px rgba(0,0,0,0.3)`;}}
@@ -91,10 +96,32 @@ export default function CardsTab({api}) {
                   <Trash2 size={14}/>
                 </button>
               </div>
-              <div style={{display:"flex",gap:16,marginBottom:14}}>
-                {c.credit_limit>0&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Limite</div><div style={{fontSize:13,fontWeight:700,color:C.text,fontFamily:"'Space Mono',monospace"}}>{fmt(c.credit_limit)}</div></div>}
+              <div style={{display:"flex",gap:16,marginBottom:10}}>
+                {creditLimit>0&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Limite</div><div style={{fontSize:13,fontWeight:700,color:C.text,fontFamily:"'Space Mono',monospace"}}>{fmt(creditLimit)}</div></div>}
                 {c.closing_day&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Fechamento</div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Dia {c.closing_day}</div></div>}
                 {c.due_day&&<div><div style={{fontSize:10,color:C.muted,marginBottom:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em"}}>Vencimento</div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Dia {c.due_day}</div></div>}
+              </div>
+              <div style={{marginBottom:12,padding:"10px 12px",background:C.surface,borderRadius:8,border:`1px solid ${C.border}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:creditLimit>0?8:0}}>
+                  <div>
+                    <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:2}}>Gasto no período</div>
+                    <div style={{fontSize:14,fontWeight:700,color:totalSpent>0?C.red:C.faint,fontFamily:"'Space Mono',monospace"}}>{fmt(totalSpent)}</div>
+                  </div>
+                  {creditLimit>0&&(
+                    <div style={{textAlign:"right"}}>
+                      <div style={{fontSize:10,color:C.muted,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.04em",marginBottom:2}}>Disponível</div>
+                      <div style={{fontSize:14,fontWeight:700,color:available>=0?C.green:C.red,fontFamily:"'Space Mono',monospace"}}>{fmt(available)}</div>
+                    </div>
+                  )}
+                </div>
+                {creditLimit>0&&(
+                  <>
+                    <div style={{background:C.border,borderRadius:4,height:5,overflow:"hidden"}}>
+                      <div style={{background:barColor,height:"100%",width:`${usedPct}%`,borderRadius:4,transition:"width 0.4s ease"}}/>
+                    </div>
+                    <div style={{fontSize:10,color:C.muted,marginTop:3,textAlign:"right"}}>{usedPct.toFixed(0)}% do limite utilizado</div>
+                  </>
+                )}
               </div>
               {/* Baixa de fatura */}
               <div style={{borderTop:`1px solid ${C.border}`,paddingTop:12}}>
