@@ -11,7 +11,7 @@ const PAYMENT_METHODS = [
   {value:"boleto",  label:"📄 Boleto",    color:"#8B5CF6"},
 ];
 
-const EMPTY = {date:"",desc:"",supplier:"",amount:"",type:"D",cat_id:"",card_id:"",inst:"",instTotal:"",payment_method:"cartao"};
+const EMPTY = {date:"",desc:"",supplier:"",amount:"",type:"D",cat_id:"",card_id:"",inst:"",instTotal:"",payment_method:"pix"};
 
 function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial}) {
   const isEdit = !!initial;
