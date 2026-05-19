@@ -13,7 +13,12 @@ const PAYMENT_METHODS = [
 
 const EMPTY = {date:"",desc:"",supplier:"",amount:"",type:"D",cat_id:"",card_id:"",inst:"",instTotal:"",payment_method:"pix"};
 
-function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial, defaultDate}) {
+const localDate = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+};
+
+function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial}) {
   const isEdit = !!initial;
   const [f,    setF]    = useState(() => {
     if (initial) return {
@@ -27,7 +32,7 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial,
       inst: initial.installment_current ? `${initial.installment_current}/${initial.installment_total}` : "",
       payment_method: initial.payment_method || "cartao",
     };
-    return {...EMPTY, date: defaultDate || new Date().toISOString().slice(0,10)};
+    return {...EMPTY, date: localDate()};
   });
   const [err,  setErr]  = useState({});
   const [saved,setSaved]= useState(false);
@@ -234,15 +239,7 @@ export default function TransactionsTab({api, user}) {
   const [fType,     setFType]     = useState("all");
   const [delId,     setDelId]     = useState(null);
   const [deleting,  setDeleting]  = useState(false);
-  const [periodo,   setPeriodo]   = useState(new Date().toISOString().slice(0,7));
-  const [serverToday, setServerToday] = useState(null);
-
-  useEffect(() => {
-    api("/health").then(data => {
-      if (data?.periodo) setPeriodo(data.periodo);
-      if (data?.date) setServerToday(data.date);
-    }).catch(() => {});
-  }, []);
+  const [periodo,   setPeriodo]   = useState(()=>localDate().slice(0,7));
 
   const load = useCallback(()=>{
     setLoading(true);
@@ -396,8 +393,8 @@ export default function TransactionsTab({api, user}) {
         </div>
       )}
 
-      {modal && <TxModal onClose={()=>setModal(false)} onSaved={load} api={api} categories={categories} cards={cards} canReceita={canReceita} defaultDate={serverToday}/>}
-      {editTx && <TxModal onClose={()=>setEditTx(null)} onSaved={load} api={api} categories={categories} cards={cards} canReceita={canReceita} initial={editTx} defaultDate={serverToday}/>}
+      {modal && <TxModal onClose={()=>setModal(false)} onSaved={load} api={api} categories={categories} cards={cards} canReceita={canReceita} />}
+      {editTx && <TxModal onClose={()=>setEditTx(null)} onSaved={load} api={api} categories={categories} cards={cards} canReceita={canReceita} initial={editTx} />}
     </div>
   );
 }

@@ -27,7 +27,7 @@ const RC = {
 export const C = IS_ROTAS_CAFE ? RC : FC;
 
 export const fmt = n => `R$ ${Number(n||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-export const fmtD = d => d ? new Date(d+"T12:00").toLocaleDateString("pt-BR") : "—";
+export const fmtD = d => d ? new Date(d+"T12:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric"}) : "—";
 export const card = (x={}) => ({background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:"20px 24px",...x});
 export const pill = c => ({display:"inline-flex",alignItems:"center",gap:4,padding:"2px 10px",borderRadius:20,fontSize:11,fontWeight:600,background:c+"22",color:c,letterSpacing:"0.02em"});
 export const inpSt = (err) => ({width:"100%",padding:"9px 12px",borderRadius:7,background:C.card,border:`1px solid ${err?C.red:C.border}`,color:C.text,fontSize:13,outline:"none",boxSizing:"border-box",transition:"border-color 0.15s ease"});
