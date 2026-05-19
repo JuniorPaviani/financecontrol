@@ -1,7 +1,7 @@
-from __future__ import annotations
 from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional, List
 from datetime import date
+_date = date  # alias to avoid Pydantic v2 naming conflict in Optional[date] fields
 
 
 class UserCreate(BaseModel):
@@ -179,7 +179,7 @@ class ChangePasswordRequest(BaseModel):
 
 class TransactionUpdate(BaseModel):
     type: Optional[str] = None
-    date: Optional[date] = None
+    date: Optional[_date] = None
     description: Optional[str] = None
     supplier: Optional[str] = None
     amount: Optional[float] = None
