@@ -172,7 +172,15 @@ app.include_router(users.router,        prefix="/api/users",         tags=["Usu�
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "version": "2.6.0", "env": ENVIRONMENT}
+    from datetime import date as _date
+    today = _date.today()
+    return {
+        "status": "ok",
+        "version": "2.6.0",
+        "env": ENVIRONMENT,
+        "date": str(today),
+        "periodo": today.strftime("%Y-%m"),
+    }
 
 
 # ── Serve frontend static files in production ─────────────────────
