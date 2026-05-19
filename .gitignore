@@ -20,7 +20,7 @@ dist/
 data/
 
 # Build artifacts
-backend/static/
+# backend/static/ — rastreado para deploy no Render
 
 # OS
 .DS_Store

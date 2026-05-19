@@ -40,6 +40,7 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial}
     if(!f.supplier.trim())e.supplier= "Obrigatório";
     if(!f.amount||isNaN(Number(f.amount))||Number(f.amount)<=0) e.amount="Valor inválido";
     if(f.inst && !/^\d{2}\/\d{2}$/.test(f.inst)) e.inst="Formato esperado: 02/10";
+    if(f.type==="D" && f.payment_method==="cartao" && !f.card_id) e.card_id="Selecione um cartão";
     return e;
   };
 
@@ -162,13 +163,14 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial}
               {categories.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
             </select>
           </div>
-          {f.type==="D" && (
+          {f.type==="D" && f.payment_method==="cartao" && (
             <div style={{flex:1}}>
-              <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Cartão</label>
-              <select value={f.card_id} onChange={e=>setF({...f,card_id:e.target.value})} style={{...selSt,width:"100%",padding:"9px 12px"}}>
-                <option value="">— Sem cartão</option>
+              <label style={{display:"block",fontSize:11,fontWeight:600,color:err.card_id?C.red:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Cartão *</label>
+              <select value={f.card_id} onChange={e=>setF({...f,card_id:e.target.value})} style={{...selSt,width:"100%",padding:"9px 12px",borderColor:err.card_id?C.red:undefined}}>
+                <option value="">— Selecione o cartão</option>
                 {cards.map(c=><option key={c.id} value={c.id}>{c.name} ({c.bank})</option>)}
               </select>
+              {err.card_id&&<span style={{color:C.red,fontSize:10,marginTop:3,display:"block"}}>{err.card_id}</span>}
             </div>
           )}
         </div>

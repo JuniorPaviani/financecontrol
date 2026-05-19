@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#140D07"/>
+  <rect width="512" height="512" rx="96" fill="url(#grad)"/>
+  <defs>
+    <radialGradient id="grad" cx="30%" cy="20%" r="80%">
+      <stop offset="0%" stop-color="#9B2335" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#140D07"/>
+    </radialGradient>
+  </defs>
+  <!-- Road/estrada decorativa -->
+  <path d="M60 460 Q180 320 256 300 Q330 280 450 160" stroke="#C97B3C" stroke-width="28" stroke-linecap="round" fill="none" opacity="0.18"/>
+  <path d="M20 500 Q140 360 220 330 Q300 300 420 180" stroke="#C97B3C" stroke-width="14" stroke-linecap="round" fill="none" opacity="0.1" stroke-dasharray="30 20"/>
+  <!-- FC letters -->
+  <text x="256" y="300" font-family="Georgia, serif" font-size="200" font-weight="700" text-anchor="middle" fill="#F5E6D3" letter-spacing="-8">FC</text>
+  <!-- Underline accent -->
+  <rect x="136" y="318" width="240" height="8" rx="4" fill="#9B2335"/>
+  <!-- Subtitle -->
+  <text x="256" y="390" font-family="Arial, sans-serif" font-size="42" font-weight="400" text-anchor="middle" fill="#C97B3C" letter-spacing="6">FINANCE</text>
+</svg>

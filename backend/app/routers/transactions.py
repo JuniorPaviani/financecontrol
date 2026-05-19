@@ -59,13 +59,27 @@ def create_transaction(
     total = data.installment_total or 1
     start = data.installment_current or 1
 
+    pm = (data.payment_method or "cartao").lower()
+    auto_paid = pm in ("pix", "dinheiro")
+
+    card = None
+    if pm == "cartao" and data.card_id:
+        card = db.query(models.Card).filter(
+            models.Card.id == data.card_id,
+            models.Card.user_id == current_user.id,
+        ).first()
+
     for i in range(start, total + 1):
-        # Calculate date for each installment (advance by months)
         months_ahead = i - start
         tx_date = _add_months(data.date, months_ahead)
 
-        pm = (data.payment_method or "cartao").lower()
-        auto_paid = pm in ("pix", "dinheiro")
+        # Se o cartão tem dia de fechamento e a transação é após o fechamento,
+        # ela pertence ao ciclo do mês seguinte.
+        if card and card.closing_day and tx_date.day > card.closing_day:
+            periodo = _periodo(_add_months(tx_date, 1))
+        else:
+            periodo = _periodo(tx_date)
+
         tx = models.Transaction(
             user_id=current_user.id,
             type=data.type,
@@ -73,9 +87,9 @@ def create_transaction(
             description=data.description,
             supplier=data.supplier,
             amount=round(data.amount, 2),
-            periodo_referencia=_periodo(tx_date),
+            periodo_referencia=periodo,
             category_id=data.category_id,
-            card_id=data.card_id if pm == "cartao" else None,
+            card_id=card.id if card else None,
             installment_current=i if group_id else None,
             installment_total=total if group_id else None,
             installment_group=group_id,
