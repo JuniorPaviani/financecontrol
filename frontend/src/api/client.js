@@ -10,7 +10,10 @@ export async function apiFetch(path, options={}, token=null) {
       const res = await fetch(`${API}${path}`, {...options, headers: reqHeaders});
       if (!res.ok) {
         const err = await res.json().catch(()=>({detail:res.statusText}));
-        const msg = err.detail || "Erro desconhecido";
+        const raw = err.detail;
+        const msg = Array.isArray(raw)
+          ? raw.map(d => d.msg || String(d)).join("; ")
+          : (raw || "Erro desconhecido");
         if (res.status === 401) throw Object.assign(new Error("E-mail ou senha incorretos."), {_noRetry:true});
         // 4xx errors are client errors (not found, validation, etc.) — don't retry
         if (res.status >= 400 && res.status < 500) throw Object.assign(new Error(msg), {_noRetry:true});

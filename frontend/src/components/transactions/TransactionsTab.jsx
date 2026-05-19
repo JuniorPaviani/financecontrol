@@ -69,8 +69,9 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial}
           payment_method:f.payment_method,
         })});
       }
+      onSaved();
       setSaved(true);
-      setTimeout(()=>{ setSaved(false); onSaved(); onClose(); }, 1400);
+      setTimeout(()=>{ setSaved(false); onClose(); }, 1400);
     } catch(e){ setErr({api:e.message}); }
     finally{ setLoading(false); }
   };
