@@ -37,7 +37,6 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial}
     const e = {};
     if(!f.date)          e.date     = "Obrigatório";
     if(!f.desc.trim())   e.desc     = "Obrigatório";
-    if(!f.supplier.trim())e.supplier= "Obrigatório";
     if(!f.amount||isNaN(Number(f.amount))||Number(f.amount)<=0) e.amount="Valor inválido";
     if(f.inst && !/^\d{2}\/\d{2}$/.test(f.inst)) e.inst="Formato esperado: 02/10";
     if(f.type==="D" && f.payment_method==="cartao" && !f.card_id) e.card_id="Selecione um cartão";
@@ -149,7 +148,7 @@ function TxModal({onClose, onSaved, api, categories, cards, canReceita, initial}
 
         {/* Fornecedor */}
         <div style={{marginBottom:14}}>
-          <label style={{display:"block",fontSize:11,fontWeight:600,color:err.supplier?C.red:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Fornecedor *</label>
+          <label style={{display:"block",fontSize:11,fontWeight:600,color:C.muted,marginBottom:6,textTransform:"uppercase",letterSpacing:"0.06em"}}>Fornecedor</label>
           <input type="text" placeholder="Ex: Extra, iFood, Uber..." value={f.supplier}
             onChange={e=>setF({...f,supplier:e.target.value})} style={inpSt(err.supplier)}/>
           {err.supplier&&<span style={{color:C.red,fontSize:10,marginTop:3,display:"block"}}>{err.supplier}</span>}
